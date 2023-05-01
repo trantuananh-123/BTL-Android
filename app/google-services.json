@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "703696911049",
+    "project_id": "medme-cf59c",
+    "storage_bucket": "medme-cf59c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:703696911049:android:04387a55e4175af88a2b18",
+        "android_client_info": {
+          "package_name": "tran.tuananh.btl"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "703696911049-2n8bjgur57c70o2n2uqjmripatk55v7n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDomNe1skEtiwvPCI7dy4W0_QnBx24U6ho"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "703696911049-2n8bjgur57c70o2n2uqjmripatk55v7n.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
