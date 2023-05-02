@@ -1,15 +1,14 @@
 package tran.tuananh.btl.Activity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -22,6 +21,7 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.shashank.sony.fancytoastlib.FancyToast;
 
@@ -171,6 +171,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                                     if (firebaseUser != null) {
                                         hashMap.put("id", firebaseUser.getUid());
                                         hashMap.put("name", user.getFullName());
+                                        hashMap.put("phone", user.getPhone());
                                         hashMap.put("email", user.getEmail());
                                         hashMap.put("password", finalPassword);
 
@@ -178,25 +179,29 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                                                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                                                     @Override
                                                     public void onComplete(@NonNull Task<Void> task) {
+                                                        startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
                                                         FancyToast.makeText(RegisterActivity.this, "Register successfully !", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
                                                     }
                                                 })
                                                 .addOnFailureListener(new OnFailureListener() {
                                                     @Override
                                                     public void onFailure(@NonNull Exception e) {
-                                                        Toast.makeText(RegisterActivity.this, "Register failed.", Toast.LENGTH_SHORT).show();
+                                                        FancyToast.makeText(RegisterActivity.this, "Register failed.", FancyToast.LENGTH_LONG, FancyToast.ERROR, false).show();
                                                     }
                                                 });
+
+                                        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder().setDisplayName(user.getFullName()).build();
+                                        firebaseUser.updateProfile(profileUpdates);
 
                                         progressBar.setVisibility(View.GONE);
                                         progressBarBackground.setVisibility(View.GONE);
                                     } else {
-                                        Toast.makeText(RegisterActivity.this, "Register failed.", Toast.LENGTH_SHORT).show();
+                                        FancyToast.makeText(RegisterActivity.this, "Register failed.", FancyToast.LENGTH_LONG, FancyToast.ERROR, false).show();
                                         progressBar.setVisibility(View.GONE);
                                         progressBarBackground.setVisibility(View.GONE);
                                     }
                                 } else {
-                                    Toast.makeText(RegisterActivity.this, "Register failed.", Toast.LENGTH_SHORT).show();
+                                    FancyToast.makeText(RegisterActivity.this, "Register failed.", FancyToast.LENGTH_LONG, FancyToast.ERROR, false).show();
                                     progressBar.setVisibility(View.GONE);
                                     progressBarBackground.setVisibility(View.GONE);
                                 }

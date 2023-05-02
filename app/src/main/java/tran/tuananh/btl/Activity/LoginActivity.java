@@ -9,23 +9,18 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.shashank.sony.fancytoastlib.FancyToast;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -131,7 +126,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                                     startActivity(new Intent(LoginActivity.this, HomeActivity.class));
                                     finish();
                                 } else {
-                                    Toast.makeText(LoginActivity.this, "Login failed.", Toast.LENGTH_SHORT).show();
+                                    FancyToast.makeText(LoginActivity.this, "Login failed.", FancyToast.LENGTH_LONG, FancyToast.ERROR, false).show();
                                     progressBar.setVisibility(View.GONE);
                                     progressBarBackground.setVisibility(View.GONE);
                                 }

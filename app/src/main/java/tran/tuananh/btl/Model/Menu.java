@@ -2,18 +2,18 @@ package tran.tuananh.btl.Model;
 
 import java.io.Serializable;
 
-public class Province implements Serializable {
+public class Menu implements Serializable {
 
     private Long id;
-    private String code;
+    private String image;
     private String name;
 
-    public Province() {
+    public Menu() {
     }
 
-    public Province(Long id, String code, String name) {
+    public Menu(Long id, String image, String name) {
         this.id = id;
-        this.code = code;
+        this.image = image;
         this.name = name;
     }
 
@@ -25,12 +25,12 @@ public class Province implements Serializable {
         this.id = id;
     }
 
-    public String getCode() {
-        return code;
+    public String getImage() {
+        return image;
     }
 
-    public void setCode(String code) {
-        this.code = code;
+    public void setImage(String image) {
+        this.image = image;
     }
 
     public String getName() {

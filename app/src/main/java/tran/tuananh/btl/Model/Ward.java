@@ -4,24 +4,28 @@ import java.io.Serializable;
 
 public class Ward implements Serializable {
 
-    private Integer id;
+    private Long id;
     private String code;
     private String name;
+    private Province province;
+    private District district;
 
     public Ward() {
     }
 
-    public Ward(Integer id, String code, String name) {
+    public Ward(Long id, String code, String name, Province province, District district) {
         this.id = id;
         this.code = code;
         this.name = name;
+        this.province = province;
+        this.district = district;
     }
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -39,5 +43,21 @@ public class Ward implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Province getProvince() {
+        return province;
+    }
+
+    public void setProvince(Province province) {
+        this.province = province;
+    }
+
+    public District getDistrict() {
+        return district;
+    }
+
+    public void setDistrict(District district) {
+        this.district = district;
     }
 }

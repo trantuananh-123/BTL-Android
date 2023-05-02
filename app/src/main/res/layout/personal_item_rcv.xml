@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:attr/selectableItemBackground"
+    android:orientation="horizontal"
+    android:padding="10dp"
+    android:weightSum="4">
+
+    <ImageView
+        android:id="@+id/menuIcon"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginRight="5dp"
+        android:layout_weight="0"
+        android:src="@drawable/ic_person"
+        app:tint="@color/gray" />
+
+    <TextView
+        android:id="@+id/menuName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_weight="4"
+        android:text="Thong tin ca nhan"
+        android:textColor="@color/black"
+        android:textSize="20dp" />
+
+    <ImageView
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_gravity="right"
+        android:src="@drawable/ic_arrow_right"
+        app:tint="@color/gray" />
+
+</LinearLayout>

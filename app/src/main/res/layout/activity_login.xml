@@ -93,7 +93,7 @@
                             android:id="@+id/inputEmail"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:hint="Email"
+                            android:hint="Email*"
                             android:inputType="textEmailAddress"
                             android:textColorHint="@color/black" />
                     </com.google.android.material.textfield.TextInputLayout>
@@ -115,18 +115,18 @@
                             android:id="@+id/inputPassword"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:hint="Password"
+                            android:hint="Password*"
                             android:inputType="textPassword"
                             android:textColorHint="@color/black" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <TextView
-                        android:id="@+id/txtForgotPassword"
+                        android:id="@+id/txtForgotAccount"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginRight="25dp"
                         android:gravity="right"
-                        android:text="Forgot password?"
+                        android:text="Forgot account?"
                         android:textColor="@color/blue"
                         android:textSize="16dp"
                         android:textStyle="bold" />
