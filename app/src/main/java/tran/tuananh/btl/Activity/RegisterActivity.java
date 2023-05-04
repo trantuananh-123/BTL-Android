@@ -149,63 +149,51 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
         if (view == btnRegister) {
             progressBar.setVisibility(View.VISIBLE);
             progressBarBackground.setVisibility(View.VISIBLE);
+
             String fullName = "", phone = "", password = "", email = "";
             fullName = String.valueOf(inputFullName.getText());
             phone = String.valueOf(inputPhone.getText());
             password = String.valueOf(inputPassword.getText());
             email = String.valueOf(inputEmail.getText());
             validate(fullName, phone, password, email);
+
             User user = new User();
             user.setFullName(fullName);
             user.setPhone(phone);
             user.setEmail(email);
+
             if (inputFullNameLayout.getError() == null && inputPhoneLayout.getError() == null && inputPasswordLayout.getError() == null && inputEmailLayout.getError() == null) {
                 String finalPassword = password;
                 firebaseAuth.createUserWithEmailAndPassword(email, password)
-                        .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                            @Override
-                            public void onComplete(@NonNull Task<AuthResult> task) {
-                                if (task.isSuccessful()) {
-                                    FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
-                                    HashMap<String, Object> hashMap = new LinkedHashMap<>();
-                                    if (firebaseUser != null) {
-                                        hashMap.put("id", firebaseUser.getUid());
-                                        hashMap.put("name", user.getFullName());
-                                        hashMap.put("phone", user.getPhone());
-                                        hashMap.put("email", user.getEmail());
-                                        hashMap.put("password", finalPassword);
+                        .addOnCompleteListener(this, task -> {
+                            if (task.isSuccessful()) {
+                                FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
+                                HashMap<String, Object> hashMap = new LinkedHashMap<>();
+                                if (firebaseUser != null) {
+                                    hashMap.put("id", firebaseUser.getUid());
+                                    hashMap.put("name", user.getFullName());
+                                    hashMap.put("phone", user.getPhone());
+                                    hashMap.put("email", user.getEmail());
+                                    hashMap.put("password", finalPassword);
 
-                                        firebaseFirestore.collection("user").document(firebaseUser.getUid()).set(hashMap)
-                                                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                    @Override
-                                                    public void onComplete(@NonNull Task<Void> task) {
-                                                        startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
-                                                        FancyToast.makeText(RegisterActivity.this, "Register successfully !", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
-                                                    }
-                                                })
-                                                .addOnFailureListener(new OnFailureListener() {
-                                                    @Override
-                                                    public void onFailure(@NonNull Exception e) {
-                                                        FancyToast.makeText(RegisterActivity.this, "Register failed.", FancyToast.LENGTH_LONG, FancyToast.ERROR, false).show();
-                                                    }
-                                                });
+                                    firebaseFirestore.collection("user").document(firebaseUser.getUid()).set(hashMap)
+                                            .addOnCompleteListener(task1 -> {
+                                                FancyToast.makeText(RegisterActivity.this, "Register successfully !", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
+                                                startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
+                                            })
+                                            .addOnFailureListener(e -> FancyToast.makeText(RegisterActivity.this, "Register failed.", FancyToast.LENGTH_LONG, FancyToast.ERROR, false).show());
 
-                                        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder().setDisplayName(user.getFullName()).build();
-                                        firebaseUser.updateProfile(profileUpdates);
+                                    UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder().setDisplayName(user.getFullName()).build();
+                                    firebaseUser.updateProfile(profileUpdates);
 
-                                        progressBar.setVisibility(View.GONE);
-                                        progressBarBackground.setVisibility(View.GONE);
-                                    } else {
-                                        FancyToast.makeText(RegisterActivity.this, "Register failed.", FancyToast.LENGTH_LONG, FancyToast.ERROR, false).show();
-                                        progressBar.setVisibility(View.GONE);
-                                        progressBarBackground.setVisibility(View.GONE);
-                                    }
                                 } else {
                                     FancyToast.makeText(RegisterActivity.this, "Register failed.", FancyToast.LENGTH_LONG, FancyToast.ERROR, false).show();
-                                    progressBar.setVisibility(View.GONE);
-                                    progressBarBackground.setVisibility(View.GONE);
                                 }
+                            } else {
+                                FancyToast.makeText(RegisterActivity.this, "Register failed.", FancyToast.LENGTH_LONG, FancyToast.ERROR, false).show();
                             }
+                            progressBar.setVisibility(View.GONE);
+                            progressBarBackground.setVisibility(View.GONE);
                         });
             }
         } else if (view == btnBackArrow) {

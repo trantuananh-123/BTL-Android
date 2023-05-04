@@ -65,21 +65,21 @@ public class FragmentPersonal extends Fragment implements ViewHolderListener, Vi
         initListener();
         initData();
         firebaseUser = firebaseAuth.getCurrentUser();
-        if (firebaseUser == null) {
-            startActivity(new Intent(this.getContext(), LoginActivity.class));
-        } else {
-            fullName.setText(firebaseUser.getDisplayName());
-            Query query = firebaseFirestore.collection("user").whereEqualTo("email", firebaseUser.getEmail()).limit(1);
-            query.get().addOnCompleteListener(task -> {
-                if (task.isSuccessful()) {
-                    for (QueryDocumentSnapshot document : task.getResult()) {
-                        if (document != null) {
-                            phone.setText((String) document.get("phone"));
-                        }
-                    }
-                }
-            });
-        }
+//        if (firebaseUser == null) {
+//            startActivity(new Intent(this.getContext(), LoginActivity.class));
+//        } else {
+//            fullName.setText(firebaseUser.getDisplayName());
+//            Query query = firebaseFirestore.collection("user").whereEqualTo("email", firebaseUser.getEmail()).limit(1);
+//            query.get().addOnCompleteListener(task -> {
+//                if (task.isSuccessful()) {
+//                    for (QueryDocumentSnapshot document : task.getResult()) {
+//                        if (document != null) {
+//                            phone.setText((String) document.get("phone"));
+//                        }
+//                    }
+//                }
+//            });
+//        }
     }
 
     @Override

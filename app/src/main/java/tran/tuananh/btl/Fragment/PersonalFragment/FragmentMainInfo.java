@@ -19,8 +19,6 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
@@ -36,6 +34,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -89,12 +88,13 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
         super.onViewCreated(view, savedInstanceState);
         firebaseAuth = FirebaseAuth.getInstance();
         firebaseFirestore = FirebaseFirestore.getInstance();
-        initView(view);
-        initData();
-        initListener();
         provinceDB = new ProvinceDB(getContext(), firebaseFirestore);
         districtDB = new DistrictDB(getContext(), firebaseFirestore);
         wardDB = new WardDB(getContext(), firebaseFirestore);
+
+        initView(view);
+        initData();
+        initListener();
     }
 
     @Override
@@ -130,6 +130,7 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
         btnSave = view.findViewById(R.id.btnSave);
         progressBar = view.findViewById(R.id.progressBar);
         progressBarBackground = view.findViewById(R.id.progressBarBackground);
+
         spinnerDistrict.setEnabled(false);
         spinnerDistrict.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.search_spinner_disabled));
         spinnerWard = view.findViewById(R.id.spinnerWard);
@@ -145,6 +146,8 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
         if (firebaseUser == null) {
             firebaseUser = firebaseAuth.getCurrentUser();
         }
+
+        // Fill user information
         firebaseFirestore.collection("user").document(firebaseUser.getUid()).get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -172,6 +175,7 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
                             spinnerProvince.setText((CharSequence) provinceReference.get("name"));
                             spinnerDistrict.setEnabled(true);
                             spinnerDistrict.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.search_spinner_enabled));
+                            initDistrict();
                         }
                         HashMap<String, Object> districtReference = (HashMap<String, Object>) documentSnapshot.get("district");
                         if (districtReference != null) {
@@ -182,6 +186,7 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
                             spinnerDistrict.setText((CharSequence) districtReference.get("name"));
                             spinnerWard.setEnabled(true);
                             spinnerWard.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.search_spinner_enabled));
+                            initWard();
                         }
                         HashMap<String, Object> wardReference = (HashMap<String, Object>) documentSnapshot.get("ward");
                         if (wardReference != null) {
@@ -194,6 +199,55 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
                         }
                     }
                 });
+        initProvince();
+    }
+
+    private void initProvince() {
+        // Get All Province
+        provinceList = new ArrayList<>();
+        Task<QuerySnapshot> provinceTask = provinceDB.getAll();
+        provinceTask.addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                List<DocumentSnapshot> documentSnapshotList = task.getResult().getDocuments();
+                for (DocumentSnapshot documentSnapshot : documentSnapshotList) {
+                    Province province = documentSnapshot.toObject(Province.class);
+                    provinceList.add(province);
+                }
+            }
+            adapterProvince = new AddressListViewAdapter<>(provinceList, getContext());
+        });
+    }
+
+    private void initDistrict() {
+        // Get All District
+        districtList = new ArrayList<>();
+        Task<QuerySnapshot> districtTask = districtDB.getAllByProvince(province.getCode());
+        districtTask.addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                List<DocumentSnapshot> districtSnapshotList = task.getResult().getDocuments();
+                for (DocumentSnapshot districtSnapshot : districtSnapshotList) {
+                    District district = districtSnapshot.toObject(District.class);
+                    districtList.add(district);
+                }
+            }
+            adapterDistrict = new AddressListViewAdapter<>(districtList, getContext());
+        });
+    }
+
+    private void initWard() {
+        // Get All Ward
+        wardList = new ArrayList<>();
+        Task<QuerySnapshot> wardTask = wardDB.getAllByProvinceAndDistrict(province.getCode(), district.getCode());
+        wardTask.addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                List<DocumentSnapshot> wardSnapshotList = task.getResult().getDocuments();
+                for (DocumentSnapshot wardSnapshot : wardSnapshotList) {
+                    Ward ward = wardSnapshot.toObject(Ward.class);
+                    wardList.add(ward);
+                }
+            }
+            adapterWard = new AddressListViewAdapter<>(wardList, getContext());
+        });
     }
 
     private void initListener() {
@@ -206,96 +260,81 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
     @Override
     public void onClick(View view) {
         if (view == spinnerProvince) {
-            provinceList = new ArrayList<>();
             TextView textView = dialog.findViewById(R.id.title);
             ListView listView = dialog.findViewById(R.id.listView);
-            listView.setAdapter(null);
+            if (listView != null) {
+                listView.setAdapter(adapterProvince);
+                listView.setOnItemClickListener((adapterView, view1, i, l) -> {
+                    if (!Objects.equals(adapterProvince.getItem(i).getId(), province.getId())) {
+                        province = adapterProvince.getItem(i);
+                        spinnerProvince.setText(adapterProvince.getItem(i).getName());
+
+                        initDistrict();
+                        district = new District();
+                        spinnerDistrict.setEnabled(true);
+                        spinnerDistrict.setText("");
+                        spinnerDistrict.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.search_spinner_enabled));
+                        ward = new Ward();
+                        spinnerWard.setEnabled(false);
+                        spinnerWard.setText("");
+                        spinnerWard.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.search_spinner_disabled));
+
+                        dialog.dismiss();
+                    }
+                });
+            }
             if (textView != null) {
                 textView.setText("Choose Province");
             }
-            Task<QuerySnapshot> task = provinceDB.getAll();
-            task.addOnCompleteListener(task1 -> {
-                if (task1.isSuccessful()) {
-                    List<DocumentSnapshot> documentSnapshotList = task1.getResult().getDocuments();
-                    for (DocumentSnapshot documentSnapshot : documentSnapshotList) {
-                        Province province = documentSnapshot.toObject(Province.class);
-                        provinceList.add(province);
-                    }
-                    adapterProvince = new AddressListViewAdapter<>(provinceList, view.getContext());
-                    listView.setAdapter(adapterProvince);
-                }
-            });
-            listView.setOnItemClickListener((adapterView, view1, i, l) -> {
-                province = adapterProvince.getItem(i);
-                spinnerProvince.setText(adapterProvince.getItem(i).getName());
-                spinnerDistrict.setEnabled(true);
-                spinnerDistrict.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.search_spinner_enabled));
-                dialog.dismiss();
-            });
             dialog.show();
         } else if (view == spinnerDistrict) {
-            districtList = new ArrayList<>();
             TextView textView = dialog.findViewById(R.id.title);
             ListView listView = dialog.findViewById(R.id.listView);
-            listView.setAdapter(null);
-
+            if (listView != null) {
+                listView.setAdapter(adapterDistrict);
+                listView.setOnItemClickListener((adapterView, view1, i, l) -> {
+                    if (!Objects.equals(adapterDistrict.getItem(i).getId(), district.getId())) {
+                        district = adapterDistrict.getItem(i);
+                        spinnerDistrict.setText(adapterDistrict.getItem(i).getName());
+                        initWard();
+                        ward = new Ward();
+                        spinnerWard.setEnabled(true);
+                        spinnerWard.setText("");
+                        spinnerWard.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.search_spinner_enabled));
+                        dialog.dismiss();
+                    }
+                });
+            }
             if (textView != null) {
                 textView.setText("Choose District");
             }
-            Task<QuerySnapshot> task = districtDB.getAllByProvince(province.getCode());
-            task.addOnCompleteListener(task1 -> {
-                if (task1.isSuccessful()) {
-                    List<DocumentSnapshot> districtSnapshotList = task1.getResult().getDocuments();
-                    for (DocumentSnapshot districtSnapshot : districtSnapshotList) {
-                        District district = districtSnapshot.toObject(District.class);
-                        districtList.add(district);
-                    }
-                    adapterDistrict = new AddressListViewAdapter<>(districtList, view.getContext());
-                    listView.setAdapter(adapterDistrict);
-                }
-            });
-            listView.setOnItemClickListener((adapterView, view1, i, l) -> {
-                district = adapterDistrict.getItem(i);
-                spinnerDistrict.setText(adapterDistrict.getItem(i).getName());
-                spinnerWard.setEnabled(true);
-                spinnerWard.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.search_spinner_enabled));
-                dialog.dismiss();
-            });
             dialog.show();
         } else if (view == spinnerWard) {
-            wardList = new ArrayList<>();
             TextView textView = dialog.findViewById(R.id.title);
             ListView listView = dialog.findViewById(R.id.listView);
-            listView.setAdapter(null);
-
+            if (listView != null) {
+                listView.setAdapter(adapterWard);
+                listView.setOnItemClickListener((adapterView, view1, i, l) -> {
+                    if (!Objects.equals(adapterWard.getItem(i).getId(), ward.getId())) {
+                        ward = adapterWard.getItem(i);
+                        spinnerWard.setText(adapterWard.getItem(i).getName());
+                        dialog.dismiss();
+                    }
+                });
+            }
             if (textView != null) {
                 textView.setText("Choose Ward");
             }
-            Task<QuerySnapshot> task = wardDB.getAllByProvinceAndDistrict(province.getCode(), district.getCode());
-            task.addOnCompleteListener(task1 -> {
-                if (task1.isSuccessful()) {
-                    List<DocumentSnapshot> wardSnapshotList = task1.getResult().getDocuments();
-                    for (DocumentSnapshot wardSnapshot : wardSnapshotList) {
-                        Ward ward = wardSnapshot.toObject(Ward.class);
-                        wardList.add(ward);
-                        adapterWard = new AddressListViewAdapter<>(wardList, view.getContext());
-                        listView.setAdapter(adapterWard);
-                    }
-                }
-            });
-            listView.setOnItemClickListener((adapterView, view1, i, l) -> {
-                ward = adapterWard.getItem(i);
-                spinnerWard.setText(adapterWard.getItem(i).getName());
-                dialog.dismiss();
-            });
             dialog.show();
         } else if (view == btnSave) {
             progressBar.setVisibility(View.VISIBLE);
             progressBarBackground.setVisibility(View.VISIBLE);
+
             String fullName = "", email = "";
             fullName = String.valueOf(inputFullName.getText());
             email = String.valueOf(inputEmail.getText());
             validate(fullName, email);
+
             if (inputFullNameLayout.getError() == null && inputEmailLayout.getError() == null) {
                 HashMap<String, Object> hashMap = new LinkedHashMap<>();
                 hashMap.put("id", firebaseUser.getUid());
@@ -310,24 +349,18 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
                 hashMap.put("ward", ward);
 
                 firebaseFirestore.collection("user").document(firebaseUser.getUid()).update(hashMap)
-                        .addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                progressBar.setVisibility(View.GONE);
-                                progressBarBackground.setVisibility(View.GONE);
-                                Intent intent = new Intent(getContext(), HomeActivity.class);
-                                intent.putExtra("menuPosition", 3);
-                                startActivity(intent);
-                                FancyToast.makeText(getContext(), "Update info successfully !", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
-                            }
+                        .addOnCompleteListener(task -> {
+                            progressBar.setVisibility(View.GONE);
+                            progressBarBackground.setVisibility(View.GONE);
+                            Intent intent = new Intent(getContext(), HomeActivity.class);
+                            intent.putExtra("menuPosition", 3);
+                            FancyToast.makeText(getContext(), "Update info successfully !", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
+                            startActivity(intent);
                         })
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                progressBar.setVisibility(View.GONE);
-                                progressBarBackground.setVisibility(View.GONE);
-                                FancyToast.makeText(getContext(), "Update info failed.", FancyToast.LENGTH_LONG, FancyToast.ERROR, false).show();
-                            }
+                        .addOnFailureListener(e -> {
+                            progressBar.setVisibility(View.GONE);
+                            progressBarBackground.setVisibility(View.GONE);
+                            FancyToast.makeText(getContext(), "Update info failed.", FancyToast.LENGTH_LONG, FancyToast.ERROR, false).show();
                         });
             }
         }

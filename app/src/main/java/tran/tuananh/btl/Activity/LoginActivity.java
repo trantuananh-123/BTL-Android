@@ -10,14 +10,10 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputLayout;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.shashank.sony.fancytoastlib.FancyToast;
 
@@ -111,25 +107,22 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         if (view == btnLogin) {
             progressBar.setVisibility(View.VISIBLE);
             progressBarBackground.setVisibility(View.VISIBLE);
+
             String password = "", email = "";
             password = String.valueOf(inputPassword.getText());
             email = String.valueOf(inputEmail.getText());
             validate(password, email);
+
             if (inputPasswordLayout.getError() == null && inputEmailLayout.getError() == null) {
-                String finalPassword = password;
-                String finalEmail = email;
                 firebaseAuth.signInWithEmailAndPassword(email, password)
-                        .addOnCompleteListener(LoginActivity.this, new OnCompleteListener<AuthResult>() {
-                            @Override
-                            public void onComplete(@NonNull Task<AuthResult> task) {
-                                if (task.isSuccessful()) {
-                                    startActivity(new Intent(LoginActivity.this, HomeActivity.class));
-                                    finish();
-                                } else {
-                                    FancyToast.makeText(LoginActivity.this, "Login failed.", FancyToast.LENGTH_LONG, FancyToast.ERROR, false).show();
-                                    progressBar.setVisibility(View.GONE);
-                                    progressBarBackground.setVisibility(View.GONE);
-                                }
+                        .addOnCompleteListener(LoginActivity.this, task -> {
+                            if (task.isSuccessful()) {
+                                startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+                                finish();
+                            } else {
+                                FancyToast.makeText(LoginActivity.this, "Login failed.", FancyToast.LENGTH_LONG, FancyToast.ERROR, false).show();
+                                progressBar.setVisibility(View.GONE);
+                                progressBarBackground.setVisibility(View.GONE);
                             }
                         });
             }
