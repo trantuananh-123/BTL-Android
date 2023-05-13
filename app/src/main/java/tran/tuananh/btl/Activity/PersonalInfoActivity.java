@@ -19,9 +19,9 @@ import tran.tuananh.btl.R;
 public class PersonalInfoActivity extends AppCompatActivity implements View.OnClickListener {
 
     private PersonalInfoViewPagerAdapter viewPagerAdapter;
+    private ImageButton btnBackArrow;
     private TabLayout tabLayout;
     private ViewPager viewPager;
-    private ImageButton btnBackArrow;
     private FirebaseAuth firebaseAuth;
     private FirebaseFirestore firebaseFirestore;
 
@@ -55,13 +55,15 @@ public class PersonalInfoActivity extends AppCompatActivity implements View.OnCl
     }
 
     private void initListener() {
-        this.btnBackArrow.setOnClickListener(this);
+        btnBackArrow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
     }
 
     @Override
     public void onClick(View view) {
-        if (view == btnBackArrow) {
-            finish();
-        }
     }
 }

@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">BTL</string>
+    <string-array name="booking_step">
+        <item>Examination Info</item>
+        <item>Summary</item>
+        <item>Done</item>
+    </string-array>
 </resources>

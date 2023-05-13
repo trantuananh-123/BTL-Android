@@ -158,32 +158,35 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
             validate(fullName, phone, password, email);
 
             User user = new User();
-            user.setFullName(fullName);
+            user.setName(fullName);
             user.setPhone(phone);
             user.setEmail(email);
 
             if (inputFullNameLayout.getError() == null && inputPhoneLayout.getError() == null && inputPasswordLayout.getError() == null && inputEmailLayout.getError() == null) {
                 String finalPassword = password;
-                firebaseAuth.createUserWithEmailAndPassword(email, password)
+                    firebaseAuth.createUserWithEmailAndPassword(email, password)
                         .addOnCompleteListener(this, task -> {
                             if (task.isSuccessful()) {
                                 FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
                                 HashMap<String, Object> hashMap = new LinkedHashMap<>();
                                 if (firebaseUser != null) {
                                     hashMap.put("id", firebaseUser.getUid());
-                                    hashMap.put("name", user.getFullName());
+                                    hashMap.put("name", user.getName());
                                     hashMap.put("phone", user.getPhone());
                                     hashMap.put("email", user.getEmail());
                                     hashMap.put("password", finalPassword);
+                                    hashMap.put("roleType", user.getRoleType());
 
                                     firebaseFirestore.collection("user").document(firebaseUser.getUid()).set(hashMap)
                                             .addOnCompleteListener(task1 -> {
+                                                progressBar.setVisibility(View.GONE);
+                                                progressBarBackground.setVisibility(View.GONE);
                                                 FancyToast.makeText(RegisterActivity.this, "Register successfully !", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
                                                 startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
                                             })
                                             .addOnFailureListener(e -> FancyToast.makeText(RegisterActivity.this, "Register failed.", FancyToast.LENGTH_LONG, FancyToast.ERROR, false).show());
 
-                                    UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder().setDisplayName(user.getFullName()).build();
+                                    UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder().setDisplayName(user.getName()).build();
                                     firebaseUser.updateProfile(profileUpdates);
 
                                 } else {
@@ -192,9 +195,10 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                             } else {
                                 FancyToast.makeText(RegisterActivity.this, "Register failed.", FancyToast.LENGTH_LONG, FancyToast.ERROR, false).show();
                             }
-                            progressBar.setVisibility(View.GONE);
-                            progressBarBackground.setVisibility(View.GONE);
                         });
+            } else {
+                progressBar.setVisibility(View.GONE);
+                progressBarBackground.setVisibility(View.GONE);
             }
         } else if (view == btnBackArrow) {
             finish();
@@ -222,8 +226,8 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
 
         if (TextUtils.isEmpty(password)) {
             inputPasswordLayout.setError("Password is required");
-        } else if (password.length() < 8) {
-            inputPasswordLayout.setError("Password must have at least 8 characters");
+        } else if (password.length() < 6) {
+            inputPasswordLayout.setError("Password must have at least 6 characters");
         } else {
             inputPasswordLayout.setError(null);
         }

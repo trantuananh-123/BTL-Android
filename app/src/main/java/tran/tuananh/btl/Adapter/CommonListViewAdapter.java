@@ -14,11 +14,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 import tran.tuananh.btl.Model.District;
+import tran.tuananh.btl.Model.Ethnicity;
+import tran.tuananh.btl.Model.Job;
+import tran.tuananh.btl.Model.Nationality;
 import tran.tuananh.btl.Model.Province;
+import tran.tuananh.btl.Model.Religion;
+import tran.tuananh.btl.Model.Service;
+import tran.tuananh.btl.Model.Specialist;
+import tran.tuananh.btl.Model.User;
 import tran.tuananh.btl.Model.Ward;
 import tran.tuananh.btl.R;
 
-public class AddressListViewAdapter<T> extends ArrayAdapter<T> implements View.OnClickListener {
+public class CommonListViewAdapter<T> extends ArrayAdapter<T> implements View.OnClickListener {
 
     private List<T> list = new ArrayList<>();
     private Context context;
@@ -27,7 +34,7 @@ public class AddressListViewAdapter<T> extends ArrayAdapter<T> implements View.O
         private TextView txtName;
     }
 
-    public AddressListViewAdapter(List<T> list, Context context) {
+    public CommonListViewAdapter(List<T> list, Context context) {
         super(context, R.layout.address_list_item, list);
         this.list = list;
         this.context = context;
@@ -46,6 +53,20 @@ public class AddressListViewAdapter<T> extends ArrayAdapter<T> implements View.O
             name = ((District) item).getName();
         } else if (item instanceof Ward) {
             name = ((Ward) item).getName();
+        } else if (item instanceof Nationality) {
+            name = ((Nationality) item).getName();
+        } else if (item instanceof Ethnicity) {
+            name = ((Ethnicity) item).getName();
+        } else if (item instanceof Religion) {
+            name = ((Religion) item).getName();
+        } else if (item instanceof Job) {
+            name = ((Job) item).getName();
+        } else if (item instanceof Specialist) {
+            name = ((Specialist) item).getName();
+        } else if (item instanceof User) {
+            name = ((User) item).getName();
+        } else if (item instanceof Service) {
+            name = ((Service) item).getName();
         }
         convertView = LayoutInflater.from(getContext()).inflate(R.layout.address_list_item, parent, false);
         AddressViewHolder addressViewHolder = new AddressViewHolder();

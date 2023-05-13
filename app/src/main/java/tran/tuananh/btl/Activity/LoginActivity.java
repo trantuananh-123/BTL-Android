@@ -125,6 +125,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                                 progressBarBackground.setVisibility(View.GONE);
                             }
                         });
+            } else {
+                progressBar.setVisibility(View.GONE);
+                progressBarBackground.setVisibility(View.GONE);
             }
         } else if (view == txtRegister) {
             startActivity(new Intent(this, RegisterActivity.class));

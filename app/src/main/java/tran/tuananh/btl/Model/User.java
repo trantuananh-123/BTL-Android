@@ -4,34 +4,40 @@ import java.io.Serializable;
 
 public class User implements Serializable {
     private String id;
-    private String fullName;
+    private String name;
     private String phone;
     private String email;
+    private String avatar;
     private String address;
     private String birthday;
     private String gender;
     private String identificationCard;
 
     // 0: admin, 1: user, 2: doctor
-    private Integer type = 0;
+    private Integer roleType = 1;
     private Province province;
     private District district;
     private Ward ward;
     private String village;
+    private Integer specialistId;
+    private Specialist specialist;
+    private HealthFacility healthFacility;
+    private Integer experience;
 
     public User() {
     }
 
-    public User(String id, String fullName, String phone, String email, String address, String birthday, String gender, String identificationCard, Integer type, Province province, District district, Ward ward, String village) {
+    public User(String id, String name, String phone, String avatar, String email, String address, String birthday, String gender, String identificationCard, Integer roleType, Province province, District district, Ward ward, String village) {
         this.id = id;
-        this.fullName = fullName;
+        this.name = name;
         this.phone = phone;
         this.email = email;
+        this.avatar = avatar;
         this.address = address;
         this.birthday = birthday;
         this.gender = gender;
         this.identificationCard = identificationCard;
-        this.type = type;
+        this.roleType = roleType;
         this.province = province;
         this.district = district;
         this.ward = ward;
@@ -46,12 +52,12 @@ public class User implements Serializable {
         this.id = id;
     }
 
-    public String getFullName() {
-        return fullName;
+    public String getName() {
+        return name;
     }
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getPhone() {
@@ -134,11 +140,51 @@ public class User implements Serializable {
         this.village = village;
     }
 
-    public Integer getType() {
-        return type;
+    public Integer getRoleType() {
+        return roleType;
     }
 
-    public void setType(Integer type) {
-        this.type = type;
+    public void setRoleType(Integer roleType) {
+        this.roleType = roleType;
+    }
+
+    public Specialist getSpecialist() {
+        return specialist;
+    }
+
+    public void setSpecialist(Specialist specialist) {
+        this.specialist = specialist;
+    }
+
+    public HealthFacility getHealthFacility() {
+        return healthFacility;
+    }
+
+    public void setHealthFacility(HealthFacility healthFacility) {
+        this.healthFacility = healthFacility;
+    }
+
+    public Integer getExperience() {
+        return experience;
+    }
+
+    public void setExperience(Integer experience) {
+        this.experience = experience;
+    }
+
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
+
+    public Integer getSpecialistId() {
+        return specialistId;
+    }
+
+    public void setSpecialistId(Integer specialistId) {
+        this.specialistId = specialistId;
     }
 }

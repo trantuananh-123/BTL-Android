@@ -13,17 +13,17 @@ import java.util.List;
 
 import tran.tuananh.btl.Model.Menu;
 import tran.tuananh.btl.R;
-import tran.tuananh.btl.ViewHolder.PersonalRcvHolder;
+import tran.tuananh.btl.ViewHolder.MenuRcvHolder;
 import tran.tuananh.btl.ViewHolder.ViewHolderListener;
 
-public class PersonalRcvAdapter extends RecyclerView.Adapter<PersonalRcvHolder> {
+public class MenuRcvAdapter extends RecyclerView.Adapter<MenuRcvHolder> {
 
     private List<Menu> menuList = new ArrayList<>();
 
     private ViewHolderListener viewHolderListener;
     private Context context;
 
-    public PersonalRcvAdapter(Context context) {
+    public MenuRcvAdapter(Context context) {
         this.context = context;
     }
 
@@ -42,13 +42,13 @@ public class PersonalRcvAdapter extends RecyclerView.Adapter<PersonalRcvHolder> 
 
     @NonNull
     @Override
-    public PersonalRcvHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.personal_item_rcv, parent, false);
-        return new PersonalRcvHolder(view, viewHolderListener);
+    public MenuRcvHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.menu_item_rcv, parent, false);
+        return new MenuRcvHolder(view, viewHolderListener);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull PersonalRcvHolder holder, int position) {
+    public void onBindViewHolder(@NonNull MenuRcvHolder holder, int position) {
         Menu menu = getMenu(position);
         holder.getMenuName().setText(menu.getName());
         int resourceId = context.getResources().getIdentifier(menu.getImage(), "drawable", context.getPackageName());

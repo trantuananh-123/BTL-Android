@@ -9,13 +9,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import tran.tuananh.btl.R;
 
-public class PersonalRcvHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+public class MenuRcvHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
     private ImageView menuIcon;
     private TextView menuName;
     private ViewHolderListener viewHolderListener;
 
-    public PersonalRcvHolder(@NonNull View itemView, ViewHolderListener viewHolderListener) {
+    public MenuRcvHolder(@NonNull View itemView, ViewHolderListener viewHolderListener) {
         super(itemView);
         menuIcon = itemView.findViewById(R.id.menuIcon);
         menuName = itemView.findViewById(R.id.menuName);
@@ -26,7 +26,7 @@ public class PersonalRcvHolder extends RecyclerView.ViewHolder implements View.O
     @Override
     public void onClick(View view) {
         if (this.viewHolderListener != null) {
-            this.viewHolderListener.onClickPersonalRcvHolder(view, getAdapterPosition());
+            this.viewHolderListener.onClickItemRcvHolder(view, getAdapterPosition());
         }
     }
 

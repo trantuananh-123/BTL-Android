@@ -16,6 +16,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -31,7 +32,7 @@ import java.util.List;
 
 import tran.tuananh.btl.Activity.LoginActivity;
 import tran.tuananh.btl.Activity.PersonalInfoActivity;
-import tran.tuananh.btl.Adapter.PersonalRcvAdapter;
+import tran.tuananh.btl.Adapter.MenuRcvAdapter;
 import tran.tuananh.btl.Database.MenuDB;
 import tran.tuananh.btl.Model.Menu;
 import tran.tuananh.btl.R;
@@ -45,7 +46,7 @@ public class FragmentPersonal extends Fragment implements ViewHolderListener, Vi
     private TextView fullName, phone;
     private ImageButton btnSignOut;
     private RecyclerView recyclerView;
-    private PersonalRcvAdapter personalRcvAdapter;
+    private MenuRcvAdapter menuRcvAdapter;
     private FirebaseAuth firebaseAuth;
     private FirebaseFirestore firebaseFirestore;
     private MenuDB menuDB;
@@ -65,21 +66,21 @@ public class FragmentPersonal extends Fragment implements ViewHolderListener, Vi
         initListener();
         initData();
         firebaseUser = firebaseAuth.getCurrentUser();
-//        if (firebaseUser == null) {
-//            startActivity(new Intent(this.getContext(), LoginActivity.class));
-//        } else {
-//            fullName.setText(firebaseUser.getDisplayName());
-//            Query query = firebaseFirestore.collection("user").whereEqualTo("email", firebaseUser.getEmail()).limit(1);
-//            query.get().addOnCompleteListener(task -> {
-//                if (task.isSuccessful()) {
-//                    for (QueryDocumentSnapshot document : task.getResult()) {
-//                        if (document != null) {
-//                            phone.setText((String) document.get("phone"));
-//                        }
-//                    }
-//                }
-//            });
-//        }
+        if (firebaseUser == null) {
+            startActivity(new Intent(this.getContext(), LoginActivity.class));
+        } else {
+            fullName.setText(firebaseUser.getDisplayName());
+            firebaseFirestore.collection("user").document(firebaseUser.getUid()).get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            DocumentSnapshot documentSnapshot = task.getResult();
+                            String avatar = (String) documentSnapshot.get("avatar");
+                            if (avatar != null) {
+                                Glide.with(view).load(avatar).into(this.avatar);
+                            }
+                        }
+                    });
+        }
     }
 
     @Override
@@ -116,8 +117,8 @@ public class FragmentPersonal extends Fragment implements ViewHolderListener, Vi
         progressBar = view.findViewById(R.id.progressBar);
         progressBarBackground = view.findViewById(R.id.progressBarBackground);
         recyclerView = view.findViewById(R.id.recyclerView);
-        personalRcvAdapter = new PersonalRcvAdapter(this.getContext());
-        personalRcvAdapter.setViewHolderListener(this);
+        menuRcvAdapter = new MenuRcvAdapter(this.getContext());
+        menuRcvAdapter.setViewHolderListener(this);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(view.getContext(), RecyclerView.VERTICAL, false);
         recyclerView.setLayoutManager(linearLayoutManager);
         firebaseFirestore = FirebaseFirestore.getInstance();
@@ -145,8 +146,8 @@ public class FragmentPersonal extends Fragment implements ViewHolderListener, Vi
                             menu.setName((String) documentSnapshot.get("name"));
                             menuList.add(menu);
 
-                            personalRcvAdapter.setMenuList(menuList);
-                            recyclerView.setAdapter(personalRcvAdapter);
+                            menuRcvAdapter.setMenuList(menuList);
+                            recyclerView.setAdapter(menuRcvAdapter);
                         }
                     }
                     progressBar.setVisibility(View.GONE);
@@ -160,8 +161,8 @@ public class FragmentPersonal extends Fragment implements ViewHolderListener, Vi
     }
 
     @Override
-    public void onClickPersonalRcvHolder(View view, int position) {
-        Menu menu = personalRcvAdapter.getMenu(position);
+    public void onClickItemRcvHolder(View view, int position) {
+        Menu menu = menuRcvAdapter.getMenu(position);
         if (menu.getName().equalsIgnoreCase("Personal Information")) {
             Intent intent = new Intent(getContext(), PersonalInfoActivity.class);
             intent.putExtra("firebaseUser", firebaseUser);

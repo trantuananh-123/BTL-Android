@@ -1,14 +1,22 @@
 package tran.tuananh.btl.Fragment.PersonalFragment;
 
+import static android.app.Activity.RESULT_OK;
+
+import android.app.DatePickerDialog;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.MimeTypeMap;
+import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.RadioButton;
@@ -19,6 +27,9 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
@@ -28,9 +39,14 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.shashank.sony.fancytoastlib.FancyToast;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -40,7 +56,7 @@ import java.util.regex.Pattern;
 
 import tran.tuananh.btl.Activity.HomeActivity;
 import tran.tuananh.btl.Activity.LoginActivity;
-import tran.tuananh.btl.Adapter.AddressListViewAdapter;
+import tran.tuananh.btl.Adapter.CommonListViewAdapter;
 import tran.tuananh.btl.Database.DistrictDB;
 import tran.tuananh.btl.Database.ProvinceDB;
 import tran.tuananh.btl.Database.WardDB;
@@ -53,6 +69,9 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
 
     public static final Pattern VALID_EMAIL_ADDRESS_REGEX = Pattern.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
 
+    private ImageView inputAvatar;
+    private Uri avatarUri;
+    private String avatarUrl;
     private TextInputLayout inputFullNameLayout, inputEmailLayout, inputBirthdayLayout, inputIdCardLayout, inputPhoneLayout;
     private EditText inputFullName, inputEmail, inputBirthday, inputIdCard, inputPhone;
     private RadioButton inputGenderMale, inputGenderFemale, inputGenderOther;
@@ -61,9 +80,9 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
     private ProgressBar progressBar;
     private View progressBarBackground;
     private MaterialButton btnSave;
-    private AddressListViewAdapter<Province> adapterProvince;
-    private AddressListViewAdapter<District> adapterDistrict;
-    private AddressListViewAdapter<Ward> adapterWard;
+    private CommonListViewAdapter<Province> adapterProvince;
+    private CommonListViewAdapter<District> adapterDistrict;
+    private CommonListViewAdapter<Ward> adapterWard;
     private List<Province> provinceList = new ArrayList<>();
     private List<District> districtList = new ArrayList<>();
     private List<Ward> wardList = new ArrayList<>();
@@ -76,6 +95,7 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
     private FirebaseAuth firebaseAuth;
     private FirebaseFirestore firebaseFirestore;
     private FirebaseUser firebaseUser;
+    private FirebaseStorage firebaseStorage;
 
     @Nullable
     @Override
@@ -88,12 +108,13 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
         super.onViewCreated(view, savedInstanceState);
         firebaseAuth = FirebaseAuth.getInstance();
         firebaseFirestore = FirebaseFirestore.getInstance();
+        firebaseStorage = FirebaseStorage.getInstance();
         provinceDB = new ProvinceDB(getContext(), firebaseFirestore);
         districtDB = new DistrictDB(getContext(), firebaseFirestore);
         wardDB = new WardDB(getContext(), firebaseFirestore);
 
         initView(view);
-        initData();
+        initData(view);
         initListener();
     }
 
@@ -112,6 +133,7 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
     }
 
     private void initView(View view) {
+        inputAvatar = view.findViewById(R.id.inputAvatar);
         inputFullNameLayout = view.findViewById(R.id.inputFullNameLayout);
         inputFullName = inputFullNameLayout.getEditText();
         inputEmailLayout = view.findViewById(R.id.inputEmailLayout);
@@ -142,7 +164,7 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
     }
 
-    private void initData() {
+    private void initData(View view) {
         if (firebaseUser == null) {
             firebaseUser = firebaseAuth.getCurrentUser();
         }
@@ -166,6 +188,10 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
                             } else {
                                 inputGenderOther.setChecked(true);
                             }
+                        }
+                        String avatar = (String) documentSnapshot.get("avatar");
+                        if (avatar != null) {
+                            Glide.with(view).load(avatar).into(inputAvatar);
                         }
                         HashMap<String, Object> provinceReference = (HashMap<String, Object>) documentSnapshot.get("province");
                         if (provinceReference != null) {
@@ -214,7 +240,7 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
                     provinceList.add(province);
                 }
             }
-            adapterProvince = new AddressListViewAdapter<>(provinceList, getContext());
+            adapterProvince = new CommonListViewAdapter<>(provinceList, getContext());
         });
     }
 
@@ -230,7 +256,7 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
                     districtList.add(district);
                 }
             }
-            adapterDistrict = new AddressListViewAdapter<>(districtList, getContext());
+            adapterDistrict = new CommonListViewAdapter<>(districtList, getContext());
         });
     }
 
@@ -246,20 +272,55 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
                     wardList.add(ward);
                 }
             }
-            adapterWard = new AddressListViewAdapter<>(wardList, getContext());
+            adapterWard = new CommonListViewAdapter<>(wardList, getContext());
         });
     }
 
     private void initListener() {
+        this.inputAvatar.setOnClickListener(this);
         this.spinnerProvince.setOnClickListener(this);
         this.spinnerDistrict.setOnClickListener(this);
         this.spinnerWard.setOnClickListener(this);
         this.btnSave.setOnClickListener(this);
+        this.inputBirthday.setOnClickListener(this);
+        this.inputBirthdayLayout.setEndIconOnClickListener(view -> {
+            Calendar calendar = Calendar.getInstance();
+            int y = calendar.get(Calendar.YEAR);
+            int m = calendar.get(Calendar.MONTH);
+            int d = calendar.get(Calendar.DAY_OF_MONTH);
+            DatePickerDialog datePickerDialog = new DatePickerDialog(getContext(), new DatePickerDialog.OnDateSetListener() {
+                String date = "";
+
+                @Override
+                public void onDateSet(DatePicker datePicker, int y, int m, int d) {
+                    if (m >= 9) {
+                        if (d < 10) {
+                            date = "0" + d + "/" + (m - 1) + "/" + y;
+                        } else {
+                            date = d + "/" + (m - 1) + "/" + y;
+                        }
+                    } else {
+                        if (d < 10) {
+                            date = "0" + d + "/0" + (m - 1) + "/" + y;
+                        } else {
+                            date = d + "/0" + (m - 1) + "/" + y;
+                        }
+                    }
+                    inputBirthday.setText(date);
+                }
+            }, y, m, d);
+            datePickerDialog.show();
+        });
     }
 
     @Override
     public void onClick(View view) {
-        if (view == spinnerProvince) {
+        if (view == inputAvatar) {
+            Intent intent = new Intent();
+            intent.setAction(Intent.ACTION_GET_CONTENT);
+            intent.setType("image/*");
+            startActivityForResult(intent, 2);
+        } else if (view == spinnerProvince) {
             TextView textView = dialog.findViewById(R.id.title);
             ListView listView = dialog.findViewById(R.id.listView);
             if (listView != null) {
@@ -326,21 +387,49 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
                 textView.setText("Choose Ward");
             }
             dialog.show();
+        } else if (view == inputBirthday) {
+            Calendar calendar = Calendar.getInstance();
+            int y = calendar.get(Calendar.YEAR);
+            int m = calendar.get(Calendar.MONTH);
+            int d = calendar.get(Calendar.DAY_OF_MONTH);
+            DatePickerDialog datePickerDialog = new DatePickerDialog(getContext(), new DatePickerDialog.OnDateSetListener() {
+                String date = "";
+
+                @Override
+                public void onDateSet(DatePicker datePicker, int y, int m, int d) {
+                    if (m >= 9) {
+                        if (d < 10) {
+                            date = "0" + d + "/" + (m - 1) + "/" + y;
+                        } else {
+                            date = d + "/" + (m - 1) + "/" + y;
+                        }
+                    } else {
+                        if (d < 10) {
+                            date = "0" + d + "/0" + (m - 1) + "/" + y;
+                        } else {
+                            date = d + "/0" + (m - 1) + "/" + y;
+                        }
+                    }
+                    inputBirthday.setText(date);
+                }
+            }, y, m, d);
+            datePickerDialog.show();
         } else if (view == btnSave) {
             progressBar.setVisibility(View.VISIBLE);
             progressBarBackground.setVisibility(View.VISIBLE);
 
-            String fullName = "", email = "";
+            String fullName = "", email = "", birthday = "";
             fullName = String.valueOf(inputFullName.getText());
             email = String.valueOf(inputEmail.getText());
-            validate(fullName, email);
+            birthday = String.valueOf(inputBirthday.getText());
+            validate(fullName, email, birthday);
 
-            if (inputFullNameLayout.getError() == null && inputEmailLayout.getError() == null) {
+            if (inputFullNameLayout.getError() == null && inputEmailLayout.getError() == null && inputBirthdayLayout.getError() == null) {
                 HashMap<String, Object> hashMap = new LinkedHashMap<>();
                 hashMap.put("id", firebaseUser.getUid());
                 hashMap.put("name", fullName);
                 hashMap.put("phone", inputPhone.getText().toString());
-                hashMap.put("birthday", inputBirthday.getText().toString());
+                hashMap.put("birthday", birthday);
                 hashMap.put("email", email);
                 hashMap.put("gender", inputGenderMale.isChecked() ? "male" : inputGenderFemale.isChecked() ? "female" : "unknown");
                 hashMap.put("idCard", inputIdCard.getText().toString());
@@ -348,25 +437,48 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
                 hashMap.put("district", district);
                 hashMap.put("ward", ward);
 
-                firebaseFirestore.collection("user").document(firebaseUser.getUid()).update(hashMap)
-                        .addOnCompleteListener(task -> {
-                            progressBar.setVisibility(View.GONE);
-                            progressBarBackground.setVisibility(View.GONE);
-                            Intent intent = new Intent(getContext(), HomeActivity.class);
-                            intent.putExtra("menuPosition", 3);
-                            FancyToast.makeText(getContext(), "Update info successfully !", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
-                            startActivity(intent);
-                        })
-                        .addOnFailureListener(e -> {
-                            progressBar.setVisibility(View.GONE);
-                            progressBarBackground.setVisibility(View.GONE);
-                            FancyToast.makeText(getContext(), "Update info failed.", FancyToast.LENGTH_LONG, FancyToast.ERROR, false).show();
+                StorageReference storageReference = firebaseStorage.getReference().child(System.currentTimeMillis() + "." + getFileExtension(avatarUri));
+                storageReference.putFile(avatarUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                            @Override
+                            public void onSuccess(Uri uri) {
+                                avatarUrl = uri.toString();
+                                hashMap.put("avatar", avatarUrl);
+                                firebaseFirestore.collection("user").document(firebaseUser.getUid()).update(hashMap)
+                                        .addOnCompleteListener(task -> {
+                                            progressBar.setVisibility(View.GONE);
+                                            progressBarBackground.setVisibility(View.GONE);
+                                            Intent intent = new Intent(getContext(), HomeActivity.class);
+                                            intent.putExtra("menuPosition", 3);
+                                            FancyToast.makeText(getContext(), "Update info successfully !", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
+                                            startActivity(intent);
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            progressBar.setVisibility(View.GONE);
+                                            progressBarBackground.setVisibility(View.GONE);
+                                            FancyToast.makeText(getContext(), "Update info failed.", FancyToast.LENGTH_LONG, FancyToast.ERROR, false).show();
+                                        });
+                            }
                         });
+                    }
+                }).addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onProgress(@NonNull UploadTask.TaskSnapshot snapshot) {
+
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+
+                    }
+                });
             }
         }
     }
 
-    private void validate(String fullName, String email) {
+    private void validate(String fullName, String email, String birthday) {
         if (TextUtils.isEmpty(fullName)) {
             inputFullNameLayout.setError("Password is required");
         } else {
@@ -380,10 +492,29 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
         } else {
             inputEmailLayout.setError(null);
         }
+
+        if(!birthday.matches("\\d{2}/\\d{2}/\\d{4}")){
+            inputBirthdayLayout.setError("Invalid date(mm/dd/yyyy)");
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 2 && resultCode == RESULT_OK && data != null) {
+            avatarUri = data.getData();
+            inputAvatar.setImageURI(avatarUri);
+        }
     }
 
     private boolean validateEmail(String email) {
         Matcher matcher = VALID_EMAIL_ADDRESS_REGEX.matcher(email);
         return matcher.matches();
+    }
+
+    private String getFileExtension(Uri uri) {
+        ContentResolver contentResolver = requireContext().getContentResolver();
+        MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
+        return mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri));
     }
 }
