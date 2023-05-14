@@ -195,7 +195,7 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
                         }
                         HashMap<String, Object> provinceReference = (HashMap<String, Object>) documentSnapshot.get("province");
                         if (provinceReference != null) {
-                            province.setId((Long) provinceReference.get("id"));
+                            province.setId((String) provinceReference.get("id"));
                             province.setCode((String) provinceReference.get("code"));
                             province.setName((String) provinceReference.get("name"));
                             spinnerProvince.setText((CharSequence) provinceReference.get("name"));
@@ -205,7 +205,7 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
                         }
                         HashMap<String, Object> districtReference = (HashMap<String, Object>) documentSnapshot.get("district");
                         if (districtReference != null) {
-                            district.setId((Long) districtReference.get("id"));
+                            district.setId((String) districtReference.get("id"));
                             district.setCode((String) districtReference.get("code"));
                             district.setName((String) districtReference.get("name"));
                             district.setProvince(province);
@@ -216,7 +216,7 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
                         }
                         HashMap<String, Object> wardReference = (HashMap<String, Object>) documentSnapshot.get("ward");
                         if (wardReference != null) {
-                            ward.setId((Long) wardReference.get("id"));
+                            ward.setId((String) wardReference.get("id"));
                             ward.setCode((String) wardReference.get("code"));
                             ward.setName((String) wardReference.get("name"));
                             ward.setProvince(province);
@@ -493,7 +493,7 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
             inputEmailLayout.setError(null);
         }
 
-        if(!birthday.matches("\\d{2}/\\d{2}/\\d{4}")){
+        if (!birthday.matches("\\d{2}/\\d{2}/\\d{4}")) {
             inputBirthdayLayout.setError("Invalid date(mm/dd/yyyy)");
         }
     }

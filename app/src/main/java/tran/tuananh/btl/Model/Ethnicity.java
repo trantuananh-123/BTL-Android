@@ -4,24 +4,24 @@ import java.io.Serializable;
 
 public class Ethnicity implements Serializable {
 
-    private Long id;
+    private String id;
     private String code;
     private String name;
 
     public Ethnicity() {
     }
 
-    public Ethnicity(Long id, String code, String name) {
+    public Ethnicity(String id, String code, String name) {
         this.id = id;
         this.code = code;
         this.name = name;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

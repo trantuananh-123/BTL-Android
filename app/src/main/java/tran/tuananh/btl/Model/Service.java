@@ -3,29 +3,32 @@ package tran.tuananh.btl.Model;
 import androidx.annotation.NonNull;
 
 import java.io.Serializable;
+import java.util.List;
 
 public class Service implements Serializable {
 
-    private Long id;
+    private String id;
     private String code;
     private String name;
     private Double price;
+    private List<String> specialistIds;
 
     public Service() {
     }
 
-    public Service(Long id, String code, String name, Double price) {
+    public Service(String id, String code, String name, Double price, List<String> specialistIds) {
         this.id = id;
         this.code = code;
         this.name = name;
         this.price = price;
+        this.specialistIds = specialistIds;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -51,6 +54,14 @@ public class Service implements Serializable {
 
     public void setPrice(Double price) {
         this.price = price;
+    }
+
+    public List<String> getSpecialistIds() {
+        return specialistIds;
+    }
+
+    public void setSpecialistIds(List<String> specialistIds) {
+        this.specialistIds = specialistIds;
     }
 
     @NonNull

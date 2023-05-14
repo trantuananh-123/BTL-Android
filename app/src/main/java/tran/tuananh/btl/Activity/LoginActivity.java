@@ -10,16 +10,22 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.shashank.sony.fancytoastlib.FancyToast;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import tran.tuananh.btl.Model.User;
 import tran.tuananh.btl.R;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
@@ -33,12 +39,14 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private MaterialButton btnLogin;
     private View progressBarBackground;
     private FirebaseAuth firebaseAuth;
+    private FirebaseFirestore firebaseFirestore;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         firebaseAuth = FirebaseAuth.getInstance();
+        firebaseFirestore = FirebaseFirestore.getInstance();
         initView();
         initListener();
     }
@@ -47,8 +55,22 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     protected void onStart() {
         super.onStart();
         if (firebaseAuth != null && firebaseAuth.getCurrentUser() != null) {
-            startActivity(new Intent(this, HomeActivity.class));
-            finish();
+            firebaseFirestore.collection("user").document(firebaseAuth.getCurrentUser().getUid()).get()
+                    .addOnCompleteListener(task1 -> {
+                        if (task1.isSuccessful()) {
+                            DocumentSnapshot documentSnapshot = task1.getResult();
+                            User user = documentSnapshot.toObject(User.class);
+                            if (user != null) {
+                                if (user.getRoleType() == 1) {
+                                    startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+                                    finish();
+                                } else if (user.getRoleType() == 0) {
+                                    startActivity(new Intent(LoginActivity.this, HomeAdminActivity.class));
+                                    finish();
+                                }
+                            }
+                        }
+                    });
         }
     }
 
@@ -117,8 +139,22 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 firebaseAuth.signInWithEmailAndPassword(email, password)
                         .addOnCompleteListener(LoginActivity.this, task -> {
                             if (task.isSuccessful()) {
-                                startActivity(new Intent(LoginActivity.this, HomeActivity.class));
-                                finish();
+                                firebaseFirestore.collection("user").document(firebaseAuth.getCurrentUser().getUid()).get()
+                                        .addOnCompleteListener(task1 -> {
+                                            if (task1.isSuccessful()) {
+                                                DocumentSnapshot documentSnapshot = task1.getResult();
+                                                User user = documentSnapshot.toObject(User.class);
+                                                if (user != null) {
+                                                    if (user.getRoleType() == 1) {
+                                                        startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+                                                        finish();
+                                                    } else if (user.getRoleType() == 0) {
+                                                        startActivity(new Intent(LoginActivity.this, HomeAdminActivity.class));
+                                                        finish();
+                                                    }
+                                                }
+                                            }
+                                        });
                             } else {
                                 FancyToast.makeText(LoginActivity.this, "Login failed.", FancyToast.LENGTH_LONG, FancyToast.ERROR, false).show();
                                 progressBar.setVisibility(View.GONE);

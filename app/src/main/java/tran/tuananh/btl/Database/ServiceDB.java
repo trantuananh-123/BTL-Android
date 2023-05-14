@@ -4,7 +4,10 @@ import android.content.Context;
 
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
+
+import java.util.List;
 
 public class ServiceDB {
 
@@ -16,8 +19,20 @@ public class ServiceDB {
         this.firebaseFirestore = firebaseFirestore;
     }
 
-    public Task<QuerySnapshot> getById(Integer id) {
+    public Task<QuerySnapshot> getById(String id) {
         return firebaseFirestore.collection("service").whereEqualTo("id", id).get();
+    }
+
+    public Task<QuerySnapshot> getBySpecialist(List<String> specialistIdList) {
+//        Query query = firebaseFirestore.collection("service");
+//        for (String id : specialistIdList) {
+//            query = query.whereArrayContains("specialistIds", id);
+//        }
+        return firebaseFirestore.collection("service").whereArrayContainsAny("specialistIds", specialistIdList).get();
+    }
+
+    public Task<QuerySnapshot> getAll() {
+        return firebaseFirestore.collection("service").get();
     }
 
 }

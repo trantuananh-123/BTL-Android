@@ -18,12 +18,12 @@ public class UserDB {
         this.firebaseFirestore = firebaseFirestore;
     }
 
-    public Task<QuerySnapshot> getDoctorByHealthFacility(Long id) {
+    public Task<QuerySnapshot> getDoctorByHealthFacility(String id) {
         return firebaseFirestore.collection("user")
                 .whereEqualTo("healthFacilityId", id).whereEqualTo("roleType", 2).get();
     }
 
-    public Task<QuerySnapshot> getDoctorByHealthFacilityAndSpecialist(Long healthFacilityId, Long specialistId) {
+    public Task<QuerySnapshot> getDoctorByHealthFacilityAndSpecialist(String healthFacilityId, String specialistId) {
         return firebaseFirestore.collection("user")
                 .whereEqualTo("healthFacilityId", healthFacilityId)
                 .whereEqualTo("specialistId", specialistId)

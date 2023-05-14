@@ -108,9 +108,9 @@ public class FragmentService extends Fragment {
             healthFacility = (HealthFacility) intent.getSerializableExtra("healthFacility");
         }
         serviceList = new ArrayList<>();
-        List<Integer> serviceIds = healthFacility.getServiceIds();
+        List<String> serviceIds = healthFacility.getServiceIds();
         if (serviceIds != null && serviceIds.size() > 0) {
-            for (Integer id : serviceIds) {
+            for (String id : serviceIds) {
                 Task<QuerySnapshot> serviceTask = serviceDB.getById(id);
                 serviceTask.addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {

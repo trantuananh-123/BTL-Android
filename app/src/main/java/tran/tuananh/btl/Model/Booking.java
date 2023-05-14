@@ -5,21 +5,21 @@ import java.util.List;
 
 public class Booking implements Serializable {
 
-    private Long id;
+    private String id;
     private String examinationDate;
     private String examinationHour;
-    private Long specialistId;
-    private List<Long> serviceIdList;
+    private String specialistId;
+    private List<String> serviceIdList;
     private String doctorId;
     private String patientId;
     private String patientName;
-    private Long healthFacilityId;
+    private String healthFacilityId;
     private String symptom;
 
     public Booking() {
     }
 
-    public Booking(Long id, String examinationDate, String examinationHour, Long specialistId, List<Long> serviceIdList, String doctorId, String patientId, String patientName, Long healthFacilityId, String symptom) {
+    public Booking(String id, String examinationDate, String examinationHour, String specialistId, List<String> serviceIdList, String doctorId, String patientId, String patientName, String healthFacilityId, String symptom) {
         this.id = id;
         this.examinationDate = examinationDate;
         this.examinationHour = examinationHour;
@@ -32,11 +32,11 @@ public class Booking implements Serializable {
         this.symptom = symptom;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -56,19 +56,19 @@ public class Booking implements Serializable {
         this.examinationHour = examinationHour;
     }
 
-    public Long getSpecialistId() {
+    public String getSpecialistId() {
         return specialistId;
     }
 
-    public void setSpecialistId(Long specialistId) {
+    public void setSpecialistId(String specialistId) {
         this.specialistId = specialistId;
     }
 
-    public List<Long> getServiceIdList() {
+    public List<String> getServiceIdList() {
         return serviceIdList;
     }
 
-    public void setServiceIdList(List<Long> serviceIdList) {
+    public void setServiceIdList(List<String> serviceIdList) {
         this.serviceIdList = serviceIdList;
     }
 
@@ -80,11 +80,11 @@ public class Booking implements Serializable {
         this.doctorId = doctorId;
     }
 
-    public Long getHealthFacilityId() {
+    public String getHealthFacilityId() {
         return healthFacilityId;
     }
 
-    public void setHealthFacilityId(Long healthFacilityId) {
+    public void setHealthFacilityId(String healthFacilityId) {
         this.healthFacilityId = healthFacilityId;
     }
 

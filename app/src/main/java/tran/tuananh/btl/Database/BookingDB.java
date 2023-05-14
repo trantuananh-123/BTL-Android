@@ -3,6 +3,7 @@ package tran.tuananh.btl.Database;
 import android.content.Context;
 
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.AggregateQuery;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
@@ -16,7 +17,13 @@ public class BookingDB {
         this.firebaseFirestore = firebaseFirestore;
     }
 
-    public Task<QuerySnapshot> search(String doctorId, Long healthFacilityId, Long specialistId, String examinationDate) {
+    public Task<QuerySnapshot> search(String doctorId, String healthFacilityId, String specialistId, String examinationDate) {
+        if (specialistId == null) {
+            return firebaseFirestore.collection("booking")
+                    .whereEqualTo("healthFacilityId", healthFacilityId)
+                    .whereEqualTo("examinationDate", examinationDate)
+                    .get();
+        }
         if (doctorId == null) {
             return firebaseFirestore.collection("booking")
                     .whereEqualTo("healthFacilityId", healthFacilityId)
@@ -30,6 +37,24 @@ public class BookingDB {
                 .whereEqualTo("specialistId", specialistId)
                 .whereEqualTo("examinationDate", examinationDate)
                 .get();
+    }
+
+    public AggregateQuery isExist(String doctorId, String healthFacilityId, String specialistId, String examinationDate, String examinationHour) {
+        if (doctorId == null) {
+            return firebaseFirestore.collection("booking")
+                    .whereEqualTo("healthFacilityId", healthFacilityId)
+                    .whereEqualTo("specialistId", specialistId)
+                    .whereEqualTo("examinationDate", examinationDate)
+                    .whereEqualTo("examinationHour", examinationHour)
+                    .count();
+        }
+        return firebaseFirestore.collection("booking")
+                .whereEqualTo("doctorId", doctorId)
+                .whereEqualTo("healthFacilityId", healthFacilityId)
+                .whereEqualTo("specialistId", specialistId)
+                .whereEqualTo("examinationDate", examinationDate)
+                .whereEqualTo("examinationHour", examinationHour)
+                .count();
     }
 
     public Task<QuerySnapshot> getAll() {

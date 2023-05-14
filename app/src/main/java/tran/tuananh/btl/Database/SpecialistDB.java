@@ -16,7 +16,11 @@ public class SpecialistDB {
         this.firebaseFirestore = firebaseFirestore;
     }
 
-    public Task<QuerySnapshot> getById(Integer id) {
+    public Task<QuerySnapshot> getById(String id) {
         return firebaseFirestore.collection("specialist").whereEqualTo("id", id).get();
+    }
+
+    public Task<QuerySnapshot> getAll() {
+        return firebaseFirestore.collection("specialist").get();
     }
 }

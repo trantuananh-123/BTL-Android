@@ -93,6 +93,10 @@ public class BookingActivity extends AppCompatActivity implements View.OnClickLi
     @Override
     public void onBackPressed() {
         super.onBackPressed();
+        if (stepView.getCurrentStep() == 0) {
+            startActivity(new Intent(this, ChooseHealthFacilityActivity.class));
+            finish();
+        }
         stepView.go(stepView.getCurrentStep() - 1, true);
         stepView.done(false);
     }

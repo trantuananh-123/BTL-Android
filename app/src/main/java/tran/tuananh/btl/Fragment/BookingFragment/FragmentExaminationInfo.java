@@ -66,7 +66,7 @@ public class FragmentExaminationInfo extends Fragment implements View.OnClickLis
     private List<Service> serviceList = new ArrayList<>();
     private List<Service> selectedServiceList = new ArrayList<>();
     private List<Integer> serviceIndexList = new ArrayList<>();
-    private List<Long> serviceIdList = new ArrayList<>();
+    private List<String> serviceIdList = new ArrayList<>();
     private boolean[] isSelectedServiceList;
     private List<String> serviceNameList = new ArrayList<>();
     private List<Specialist> specialistList = new ArrayList<>();
@@ -179,9 +179,9 @@ public class FragmentExaminationInfo extends Fragment implements View.OnClickLis
         }
         // Get All Specialist
         specialistList = new ArrayList<>();
-        List<Integer> specialistIds = healthFacility.getSpecialistIds();
+        List<String> specialistIds = healthFacility.getSpecialistIds();
         if (specialistIds != null && specialistIds.size() > 0) {
-            for (Integer id : specialistIds) {
+            for (String id : specialistIds) {
                 Task<QuerySnapshot> specialistTask = specialistDB.getById(id);
                 specialistTask.addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -237,8 +237,8 @@ public class FragmentExaminationInfo extends Fragment implements View.OnClickLis
         if (serviceIdList.size() != 0) {
             StringBuilder stringBuilder = new StringBuilder();
             for (int i = 0; i < serviceIdList.size(); i++) {
-                Long serviceId = serviceIdList.get(i);
-                Service selectedService = serviceList.stream().filter(x -> x.getId() == serviceId).findFirst().orElse(null);
+                String serviceId = serviceIdList.get(i);
+                Service selectedService = serviceList.stream().filter(x -> x.getId().equals(serviceId)).findFirst().orElse(null);
                 if (selectedService != null) {
                     stringBuilder.append(selectedService.getName());
                     if (i != serviceIndexList.size() - 1) {
@@ -250,18 +250,23 @@ public class FragmentExaminationInfo extends Fragment implements View.OnClickLis
         }
         // Get All Service
         serviceList = new ArrayList<>();
-        List<Integer> serviceIds = healthFacility.getServiceIds();
+        serviceNameList = new ArrayList<>();
+        List<String> serviceIds = healthFacility.getServiceIds();
         if (serviceIds != null && serviceIds.size() > 0) {
-            AtomicInteger index = new AtomicInteger(0);
-            for (Integer id : serviceIds) {
+//            AtomicInteger index = new AtomicInteger(0);
+            for (String id : serviceIds) {
                 Task<QuerySnapshot> serviceTask = serviceDB.getById(id);
                 serviceTask.addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         List<DocumentSnapshot> documentSnapshotList = task.getResult().getDocuments();
                         for (DocumentSnapshot documentSnapshot : documentSnapshotList) {
                             Service service = documentSnapshot.toObject(Service.class);
-                            serviceList.add(service);
-                            serviceNameList.add(service.getName());
+                            if (specialist.getId() != null) {
+                                if (service != null && service.getSpecialistIds().contains(specialist.getId())) {
+                                    serviceList.add(service);
+                                    serviceNameList.add(service.getName());
+                                }
+                            }
                         }
                     }
                     adapterService = new CommonListViewAdapter<>(serviceList, getContext());
@@ -272,7 +277,7 @@ public class FragmentExaminationInfo extends Fragment implements View.OnClickLis
     }
 
     private void initExaminationHour() {
-        List<Time> intervals = new ArrayList<>(25);
+        List<Time> intervals = new ArrayList<>();
         Time startTime = new java.sql.Time(7, 0, 0);
         Time endTime = new java.sql.Time(18, 0, 0);
 
@@ -292,6 +297,7 @@ public class FragmentExaminationInfo extends Fragment implements View.OnClickLis
     }
 
     private void getExistedBookingList() {
+        existedBookingList = new ArrayList<>();
         Task<QuerySnapshot> bookingTask = bookingDB.search(doctor.getId(), healthFacility.getId(), specialist.getId(), inputExaminationDate.getText().toString());
         bookingTask.addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
@@ -343,6 +349,7 @@ public class FragmentExaminationInfo extends Fragment implements View.OnClickLis
                     inputExaminationHour.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.search_spinner_enabled));
                 }
             }, y, m, d);
+            datePickerDialog.getDatePicker().setMinDate(calendar.getTimeInMillis());
             datePickerDialog.show();
         });
     }
@@ -362,7 +369,13 @@ public class FragmentExaminationInfo extends Fragment implements View.OnClickLis
                         spinnerDoctor.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.search_spinner_enabled));
                         spinnerDoctor.setText("");
                         doctor = new User();
+                        serviceIdList.clear();
+                        serviceNameList.clear();
+                        selectedServiceList.clear();
+                        serviceIndexList.clear();
+                        spinnerService.setText("");
                         initDoctor();
+                        initService();
                         dialog1.dismiss();
                     }
                 });
@@ -400,7 +413,7 @@ public class FragmentExaminationInfo extends Fragment implements View.OnClickLis
                     if (b) {
                         serviceIndexList.add(i);
                     } else {
-                        serviceIndexList.remove(i);
+                        serviceIndexList.removeIf(integer -> integer == i);
                     }
                 }
             }).setPositiveButton("Save", new DialogInterface.OnClickListener() {
@@ -467,6 +480,7 @@ public class FragmentExaminationInfo extends Fragment implements View.OnClickLis
                     inputExaminationHour.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.search_spinner_enabled));
                 }
             }, y, m, d);
+            datePickerDialog.getDatePicker().setMinDate(calendar.getTimeInMillis());
             datePickerDialog.show();
         } else if (view == inputExaminationHour) {
             CommonGridViewAdapter commonGridViewAdapter = new CommonGridViewAdapter(getContext(), examinationHourList, existedBookingList);

@@ -5,7 +5,7 @@ import java.util.List;
 
 public class HealthFacility implements Serializable {
 
-    private Long id;
+    private String id;
     private String code;
     private String name;
     private String address;
@@ -17,13 +17,13 @@ public class HealthFacility implements Serializable {
     private Province province;
     private District district;
     private Ward ward;
-    private List<Integer> serviceIds;
-    private List<Integer> specialistIds;
+    private List<String> serviceIds;
+    private List<String> specialistIds;
 
     public HealthFacility() {
     }
 
-    public HealthFacility(Long id, String code, String name, String address, String image, String email, String phone, String website, String fanpage, Province province, District district, Ward ward) {
+    public HealthFacility(String id, String code, String name, String address, String image, String email, String phone, String website, String fanpage, Province province, District district, Ward ward) {
         this.id = id;
         this.code = code;
         this.name = name;
@@ -38,11 +38,11 @@ public class HealthFacility implements Serializable {
         this.ward = ward;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -134,19 +134,19 @@ public class HealthFacility implements Serializable {
         this.ward = ward;
     }
 
-    public List<Integer> getServiceIds() {
+    public List<String> getServiceIds() {
         return serviceIds;
     }
 
-    public void setServiceIds(List<Integer> serviceIds) {
+    public void setServiceIds(List<String> serviceIds) {
         this.serviceIds = serviceIds;
     }
 
-    public List<Integer> getSpecialistIds() {
+    public List<String> getSpecialistIds() {
         return specialistIds;
     }
 
-    public void setSpecialistIds(List<Integer> specialistIds) {
+    public void setSpecialistIds(List<String> specialistIds) {
         this.specialistIds = specialistIds;
     }
 }

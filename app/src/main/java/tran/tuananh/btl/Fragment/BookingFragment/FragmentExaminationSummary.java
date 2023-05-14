@@ -17,6 +17,9 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.AggregateQuery;
+import com.google.firebase.firestore.AggregateQuerySnapshot;
+import com.google.firebase.firestore.AggregateSource;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -39,6 +42,7 @@ import tran.tuananh.btl.Model.HealthFacility;
 import tran.tuananh.btl.Model.Service;
 import tran.tuananh.btl.Model.User;
 import tran.tuananh.btl.R;
+import tran.tuananh.btl.Util.FnCommon;
 
 public class FragmentExaminationSummary extends Fragment implements View.OnClickListener {
     private FragmentDataListener fragmentDataListener;
@@ -49,7 +53,7 @@ public class FragmentExaminationSummary extends Fragment implements View.OnClick
     private MaterialButton btnSave;
     private Booking booking;
     private HealthFacility healthFacility;
-    private List<Long> serviceIdList;
+    private List<String> serviceIdList;
     private User doctor;
     private List<Booking> bookingList = new ArrayList<>();
     private HealthFacilityDB healthFacilityDB;
@@ -136,8 +140,8 @@ public class FragmentExaminationSummary extends Fragment implements View.OnClick
 
     private void initService() {
         AtomicReference<Double> total = new AtomicReference<>(0.0);
-        for (Long id : serviceIdList) {
-            Task<QuerySnapshot> querySnapshotTask = serviceDB.getById(Math.toIntExact(id));
+        for (String id : serviceIdList) {
+            Task<QuerySnapshot> querySnapshotTask = serviceDB.getById(id);
             querySnapshotTask.addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     List<DocumentSnapshot> documentSnapshotList = task.getResult().getDocuments();
@@ -174,23 +178,36 @@ public class FragmentExaminationSummary extends Fragment implements View.OnClick
     @Override
     public void onClick(View view) {
         if (view == btnSave) {
-            progressBar.setVisibility(View.VISIBLE);
-            progressBarBackground.setVisibility(View.VISIBLE);
-            HashMap<String, Object> hashMap = new LinkedHashMap<>();
-            hashMap.put("id", bookingList.get(bookingList.size() - 1).getId() + 1);
-            hashMap.put("doctorId", booking.getDoctorId());
-            hashMap.put("examinationDate", booking.getExaminationDate());
-            hashMap.put("examinationHour", booking.getExaminationHour());
-            hashMap.put("healthFacilityId", booking.getHealthFacilityId());
-            hashMap.put("serviceIdList", booking.getServiceIdList());
-            hashMap.put("specialistId", booking.getSpecialistId());
-            hashMap.put("symptom", booking.getSymptom());
-            firebaseFirestore.collection("booking").document().set(hashMap).addOnCompleteListener(task -> {
-                if (task.isSuccessful()) {
-                    progressBar.setVisibility(View.GONE);
-                    progressBarBackground.setVisibility(View.GONE);
-                    FancyToast.makeText(getContext(), "Booking successfully.", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
-                    fragmentDataListener.confirmBooking(booking);
+            AggregateQuery aggregateQuery = bookingDB.isExist(booking.getDoctorId(), booking.getHealthFacilityId(), booking.getSpecialistId(), booking.getExaminationDate(), booking.getExaminationHour());
+            aggregateQuery.get(AggregateSource.SERVER).addOnCompleteListener(new OnCompleteListener<AggregateQuerySnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<AggregateQuerySnapshot> task) {
+                    if (task.isSuccessful()) {
+                        AggregateQuerySnapshot snapshot = task.getResult();
+                        if (snapshot.getCount() > 0) {
+                            FancyToast.makeText(getContext(), "Examination time is unavailable", FancyToast.LENGTH_LONG, FancyToast.ERROR, false).show();
+                        } else {
+                            progressBar.setVisibility(View.VISIBLE);
+                            progressBarBackground.setVisibility(View.VISIBLE);
+                            HashMap<String, Object> hashMap = new LinkedHashMap<>();
+                            hashMap.put("id", FnCommon.generateUId());
+                            hashMap.put("doctorId", booking.getDoctorId());
+                            hashMap.put("examinationDate", booking.getExaminationDate());
+                            hashMap.put("examinationHour", booking.getExaminationHour());
+                            hashMap.put("healthFacilityId", booking.getHealthFacilityId());
+                            hashMap.put("serviceIdList", booking.getServiceIdList());
+                            hashMap.put("specialistId", booking.getSpecialistId());
+                            hashMap.put("symptom", booking.getSymptom());
+                            firebaseFirestore.collection("booking").document().set(hashMap).addOnCompleteListener(task1 -> {
+                                if (task1.isSuccessful()) {
+                                    progressBar.setVisibility(View.GONE);
+                                    progressBarBackground.setVisibility(View.GONE);
+                                    FancyToast.makeText(getContext(), "Booking successfully.", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
+                                    fragmentDataListener.confirmBooking(booking);
+                                }
+                            });
+                        }
+                    }
                 }
             });
         }

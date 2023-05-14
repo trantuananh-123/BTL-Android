@@ -19,7 +19,7 @@ public class User implements Serializable {
     private District district;
     private Ward ward;
     private String village;
-    private Integer specialistId;
+    private String specialistId;
     private Specialist specialist;
     private HealthFacility healthFacility;
     private Integer experience;
@@ -180,11 +180,11 @@ public class User implements Serializable {
         this.avatar = avatar;
     }
 
-    public Integer getSpecialistId() {
+    public String getSpecialistId() {
         return specialistId;
     }
 
-    public void setSpecialistId(Integer specialistId) {
+    public void setSpecialistId(String specialistId) {
         this.specialistId = specialistId;
     }
 }

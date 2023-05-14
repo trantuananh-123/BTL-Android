@@ -23,7 +23,7 @@ public class HealthFacilityDB {
         return firebaseFirestore.collection("healthFacility").whereEqualTo("province.code", provinceCode).get();
     }
 
-    public Task<QuerySnapshot> getById(Long id) {
+    public Task<QuerySnapshot> getById(String id) {
         return firebaseFirestore.collection("healthFacility").whereEqualTo("id", id).get();
     }
 }

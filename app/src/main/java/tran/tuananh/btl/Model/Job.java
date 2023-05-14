@@ -4,24 +4,24 @@ import java.io.Serializable;
 
 public class Job implements Serializable {
 
-    private Long id;
+    private String id;
     private String code;
     private String name;
 
     public Job() {
     }
 
-    public Job(Long id, String code, String name) {
+    public Job(String id, String code, String name) {
         this.id = id;
         this.code = code;
         this.name = name;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

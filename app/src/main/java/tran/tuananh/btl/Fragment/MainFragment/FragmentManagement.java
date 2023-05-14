@@ -30,6 +30,7 @@ import com.shashank.sony.fancytoastlib.FancyToast;
 import java.util.ArrayList;
 import java.util.List;
 
+import tran.tuananh.btl.Activity.HealthFacilityManagementActivity;
 import tran.tuananh.btl.Activity.LoginActivity;
 import tran.tuananh.btl.Activity.PersonalInfoActivity;
 import tran.tuananh.btl.Adapter.MenuRcvAdapter;
@@ -38,7 +39,7 @@ import tran.tuananh.btl.Model.Menu;
 import tran.tuananh.btl.R;
 import tran.tuananh.btl.ViewHolder.ViewHolderListener;
 
-public class FragmentPersonal extends Fragment implements ViewHolderListener, View.OnClickListener {
+public class FragmentManagement extends Fragment implements ViewHolderListener, View.OnClickListener {
 
     private ProgressBar progressBar;
     private View progressBarBackground;
@@ -56,7 +57,7 @@ public class FragmentPersonal extends Fragment implements ViewHolderListener, Vi
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_personal, container, false);
+        return inflater.inflate(R.layout.fragment_management, container, false);
     }
 
     @Override
@@ -134,37 +135,22 @@ public class FragmentPersonal extends Fragment implements ViewHolderListener, Vi
         progressBar.setVisibility(View.VISIBLE);
         progressBarBackground.setVisibility(View.VISIBLE);
 
-        Task<QuerySnapshot> task = menuDB.getAll();
+        Menu menu = new Menu();
+        menu.setImage("ic_healthfacility");
+        menu.setName("HealthFacility Management");
+        menuList.add(menu);
 
-        task.addOnCompleteListener(task1 -> {
-                    if (task1.isSuccessful()) {
-                        List<DocumentSnapshot> documentSnapshotList = task1.getResult().getDocuments();
-                        for (DocumentSnapshot documentSnapshot : documentSnapshotList) {
-                            Menu menu = new Menu();
-                            menu.setId((String) documentSnapshot.get("id"));
-                            menu.setImage((String) documentSnapshot.get("image"));
-                            menu.setName((String) documentSnapshot.get("name"));
-                            menuList.add(menu);
-
-                            menuRcvAdapter.setMenuList(menuList);
-                            recyclerView.setAdapter(menuRcvAdapter);
-                        }
-                    }
-                    progressBar.setVisibility(View.GONE);
-                    progressBarBackground.setVisibility(View.GONE);
-                })
-                .addOnFailureListener(e -> {
-                    FancyToast.makeText(requireContext(), "Get menu failed.", FancyToast.LENGTH_LONG, FancyToast.ERROR, false).show();
-                    progressBar.setVisibility(View.GONE);
-                    progressBarBackground.setVisibility(View.GONE);
-                });
+        menuRcvAdapter.setMenuList(menuList);
+        recyclerView.setAdapter(menuRcvAdapter);
+        progressBar.setVisibility(View.GONE);
+        progressBarBackground.setVisibility(View.GONE);
     }
 
     @Override
     public void onClickItemRcvHolder(View view, int position) {
         Menu menu = menuRcvAdapter.getMenu(position);
-        if (menu.getName().equalsIgnoreCase("Personal Information")) {
-            Intent intent = new Intent(getContext(), PersonalInfoActivity.class);
+        if (menu.getName().equalsIgnoreCase("HealthFacility Management")) {
+            Intent intent = new Intent(getContext(), HealthFacilityManagementActivity.class);
             intent.putExtra("firebaseUser", firebaseUser);
             startActivity(intent);
         }
