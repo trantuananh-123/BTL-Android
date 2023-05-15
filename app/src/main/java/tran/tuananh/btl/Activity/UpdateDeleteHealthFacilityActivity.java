@@ -29,9 +29,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.shashank.sony.fancytoastlib.FancyToast;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
@@ -45,6 +43,7 @@ import tran.tuananh.btl.Database.ServiceDB;
 import tran.tuananh.btl.Database.SpecialistDB;
 import tran.tuananh.btl.Database.WardDB;
 import tran.tuananh.btl.Model.District;
+import tran.tuananh.btl.Model.HealthFacility;
 import tran.tuananh.btl.Model.Province;
 import tran.tuananh.btl.Model.Service;
 import tran.tuananh.btl.Model.Specialist;
@@ -52,7 +51,7 @@ import tran.tuananh.btl.Model.Ward;
 import tran.tuananh.btl.R;
 import tran.tuananh.btl.Util.FnCommon;
 
-public class AddHealthFacilityActivity extends AppCompatActivity implements View.OnClickListener {
+public class UpdateDeleteHealthFacilityActivity extends AppCompatActivity implements View.OnClickListener {
 
     public static final Pattern VALID_EMAIL_ADDRESS_REGEX = Pattern.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
 
@@ -94,11 +93,12 @@ public class AddHealthFacilityActivity extends AppCompatActivity implements View
     private List<String> serviceIdList = new ArrayList<>();
     private boolean[] isSelectedServiceList;
     private List<String> serviceNameList = new ArrayList<>();
+    private HealthFacility healthFacility = new HealthFacility();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_add_health_facility);
+        setContentView(R.layout.activity_update_delete_health_facility);
         firebaseFirestore = FirebaseFirestore.getInstance();
         provinceDB = new ProvinceDB(this, firebaseFirestore);
         districtDB = new DistrictDB(this, firebaseFirestore);
@@ -141,10 +141,44 @@ public class AddHealthFacilityActivity extends AppCompatActivity implements View
     }
 
     private void initData() {
+        Intent intent = getIntent();
+        healthFacility = (HealthFacility) intent.getSerializableExtra("healthFacility");
+        if (healthFacility != null) {
+            name.setText(healthFacility.getName());
+            code.setText(healthFacility.getCode());
+            if (healthFacility.getProvince() != null) {
+                province = healthFacility.getProvince();
+                spinnerProvince.setText(province.getName());
+                initDistrict();
+                district = new District();
+                spinnerDistrict.setEnabled(true);
+                spinnerDistrict.setText("");
+                spinnerDistrict.setBackground(ContextCompat.getDrawable(UpdateDeleteHealthFacilityActivity.this, R.drawable.search_spinner_enabled));
+            }
+            if (healthFacility.getDistrict() != null) {
+                district = healthFacility.getDistrict();
+                spinnerDistrict.setText(district.getName());
+                initWard();
+                ward = new Ward();
+                spinnerWard.setEnabled(true);
+                spinnerWard.setText("");
+                spinnerWard.setBackground(ContextCompat.getDrawable(UpdateDeleteHealthFacilityActivity.this, R.drawable.search_spinner_enabled));
+            }
+            if (healthFacility.getWard() != null) {
+                ward = healthFacility.getWard();
+                spinnerWard.setText(ward.getName());
+            }
+            address.setText(healthFacility.getAddress());
+            email.setText(healthFacility.getEmail());
+            phone.setText(healthFacility.getPhone());
+            fanpage.setText(healthFacility.getFanpage());
+            website.setText(healthFacility.getWebsite());
+        }
         initProvince();
+        initSpecialist();
 //        initDistrict();
 //        initWard();
-        initSpecialist();
+//        initSpecialist();
     }
 
     private void initListener() {
@@ -213,20 +247,42 @@ public class AddHealthFacilityActivity extends AppCompatActivity implements View
         specialistIdList.clear();
         specialistIndexList.clear();
         specialistNameList.clear();
+
+        if (healthFacility.getSpecialistIds() != null && healthFacility.getSpecialistIds().size() > 0) {
+            specialistIdList = healthFacility.getSpecialistIds();
+        }
+
         Task<QuerySnapshot> specialistTask = specialistDB.getAll();
         specialistTask.addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 List<DocumentSnapshot> specialistSnapshotList = task.getResult().getDocuments();
+                StringBuilder stringBuilder = new StringBuilder();
                 for (DocumentSnapshot specialistSnapshot : specialistSnapshotList) {
                     Specialist specialist = specialistSnapshot.toObject(Specialist.class);
                     if (specialist != null) {
                         specialistList.add(specialist);
-                        specialistNameList.add(specialist.getName());
+                        if (specialistIdList.contains(specialist.getId())) {
+                            if (!stringBuilder.toString().equals("")) {
+                                stringBuilder.append("; ");
+                            }
+                            stringBuilder.append(specialist.getName());
+                            spinnerSpecialist.setText(stringBuilder.toString());
+                            specialistNameList.add(specialist.getName());
+                            specialistIndexList.add(specialistList.indexOf(specialist));
+                        }
                     }
                 }
+                spinnerService.setEnabled(true);
+                spinnerService.setBackground(ContextCompat.getDrawable(UpdateDeleteHealthFacilityActivity.this, R.drawable.search_spinner_enabled));
+                initService();
             }
             adapterSpecialist = new CommonListViewAdapter<>(specialistList, this);
             isSelectedSpecialistList = new boolean[specialistList.size()];
+            for (int index = 0; index < specialistList.size(); index++) {
+                if (specialistIdList.contains(specialistList.get(index).getId())) {
+                    isSelectedSpecialistList[index] = true;
+                }
+            }
         });
     }
 
@@ -236,24 +292,43 @@ public class AddHealthFacilityActivity extends AppCompatActivity implements View
         isSelectedServiceList = new boolean[serviceList.size()];
         serviceIdList.clear();
         serviceIndexList.clear();
-        serviceNameList = new ArrayList<>();
-        Task<QuerySnapshot> serviceTask = serviceDB.getBySpecialist(specialistIdList);
+        serviceNameList.clear();
+        spinnerService.setText("");
+
+        if (healthFacility.getServiceIds() != null && healthFacility.getServiceIds().size() > 0) {
+            serviceIdList = healthFacility.getServiceIds();
+        }
+
+        Task<QuerySnapshot> serviceTask = serviceDB.getBySpecialist(specialistIdList.size() == 0 ? healthFacility.getSpecialistIds() : specialistIdList);
         serviceTask.addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 List<DocumentSnapshot> documentSnapshotList = task.getResult().getDocuments();
+                StringBuilder stringBuilder = new StringBuilder();
                 for (DocumentSnapshot documentSnapshot : documentSnapshotList) {
                     Service service = documentSnapshot.toObject(Service.class);
                     if (service != null) {
-//                        List<String> specialistIds = service.getSpecialistIds();
-//                        if (specialistIds.containsAll(specialistIdList)) {
                         serviceList.add(service);
-                        serviceNameList.add(service.getName());
-//                        }
+                        if (!serviceNameList.contains(service.getName())) {
+                            serviceNameList.add(service.getName());
+                            serviceIndexList.add(serviceList.indexOf(service));
+                        }
+                        if (serviceIdList.contains(service.getId())) {
+                            if (!stringBuilder.toString().equals("")) {
+                                stringBuilder.append("; ");
+                            }
+                            stringBuilder.append(service.getName());
+                            spinnerService.setText(stringBuilder.toString());
+                        }
                     }
                 }
             }
             adapterService = new CommonListViewAdapter<>(serviceList, this);
             isSelectedServiceList = new boolean[serviceList.size()];
+            for (int index = 0; index < serviceList.size(); index++) {
+                if (serviceIdList.contains(serviceList.get(index).getId())) {
+                    isSelectedServiceList[index] = true;
+                }
+            }
         });
     }
 
@@ -278,11 +353,11 @@ public class AddHealthFacilityActivity extends AppCompatActivity implements View
                         district = new District();
                         spinnerDistrict.setEnabled(true);
                         spinnerDistrict.setText("");
-                        spinnerDistrict.setBackground(ContextCompat.getDrawable(AddHealthFacilityActivity.this, R.drawable.search_spinner_enabled));
+                        spinnerDistrict.setBackground(ContextCompat.getDrawable(UpdateDeleteHealthFacilityActivity.this, R.drawable.search_spinner_enabled));
                         ward = new Ward();
                         spinnerWard.setEnabled(false);
                         spinnerWard.setText("");
-                        spinnerWard.setBackground(ContextCompat.getDrawable(AddHealthFacilityActivity.this, R.drawable.search_spinner_disabled));
+                        spinnerWard.setBackground(ContextCompat.getDrawable(UpdateDeleteHealthFacilityActivity.this, R.drawable.search_spinner_disabled));
 
                         dialog.dismiss();
                     }
@@ -305,7 +380,7 @@ public class AddHealthFacilityActivity extends AppCompatActivity implements View
                         ward = new Ward();
                         spinnerWard.setEnabled(true);
                         spinnerWard.setText("");
-                        spinnerWard.setBackground(ContextCompat.getDrawable(AddHealthFacilityActivity.this, R.drawable.search_spinner_enabled));
+                        spinnerWard.setBackground(ContextCompat.getDrawable(UpdateDeleteHealthFacilityActivity.this, R.drawable.search_spinner_enabled));
                         dialog.dismiss();
                     }
                 });
@@ -375,7 +450,7 @@ public class AddHealthFacilityActivity extends AppCompatActivity implements View
                     }
                     initService();
                     spinnerService.setEnabled(true);
-                    spinnerService.setBackground(ContextCompat.getDrawable(AddHealthFacilityActivity.this, R.drawable.search_spinner_enabled));
+                    spinnerService.setBackground(ContextCompat.getDrawable(UpdateDeleteHealthFacilityActivity.this, R.drawable.search_spinner_enabled));
                 }
             }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                 @Override
@@ -408,8 +483,10 @@ public class AddHealthFacilityActivity extends AppCompatActivity implements View
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i, boolean b) {
                     if (b) {
-                        serviceIndexList.add(i);
-                        count[0]++;
+                        if (!serviceIndexList.contains(i)) {
+                            serviceIndexList.add(i);
+                            count[0]++;
+                        }
                     } else {
                         serviceIndexList.removeIf(integer -> integer == i);
                         count[0]--;
@@ -462,7 +539,7 @@ public class AddHealthFacilityActivity extends AppCompatActivity implements View
                 progressBarBackground.setVisibility(View.VISIBLE);
 
                 HashMap<String, Object> hashMap = new LinkedHashMap<>();
-                hashMap.put("id", FnCommon.generateUId());
+                hashMap.put("id", healthFacility.getId());
                 hashMap.put("name", name);
                 hashMap.put("code", code);
                 hashMap.put("email", email);
@@ -475,17 +552,17 @@ public class AddHealthFacilityActivity extends AppCompatActivity implements View
                 hashMap.put("website", website.getText().toString());
                 hashMap.put("specialistIds", specialistIdList);
                 hashMap.put("serviceIds", serviceIdList);
-                firebaseFirestore.collection("healthFacility").document().set(hashMap)
+                firebaseFirestore.collection("healthFacility").document(healthFacility.getId()).set(hashMap)
                         .addOnCompleteListener(task1 -> {
                             progressBar.setVisibility(View.GONE);
                             progressBarBackground.setVisibility(View.GONE);
-                            FancyToast.makeText(AddHealthFacilityActivity.this, "Add healthFacility successfully!", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
-                            finish();
+                            FancyToast.makeText(UpdateDeleteHealthFacilityActivity.this, "Update healthFacility successfully!", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
+//                            startActivity(new Intent(Add.this, LoginActivity.class));
                         })
                         .addOnFailureListener(task1 -> {
                             progressBar.setVisibility(View.GONE);
                             progressBarBackground.setVisibility(View.GONE);
-                            FancyToast.makeText(AddHealthFacilityActivity.this, "Add healthFacility failed!", FancyToast.LENGTH_LONG, FancyToast.ERROR, false).show();
+                            FancyToast.makeText(UpdateDeleteHealthFacilityActivity.this, "Update healthFacility failed!", FancyToast.LENGTH_LONG, FancyToast.ERROR, false).show();
                         });
             }
         }
@@ -517,10 +594,6 @@ public class AddHealthFacilityActivity extends AppCompatActivity implements View
         } else if (!validateEmail(email)) {
             FancyToast.makeText(this, "Invalid email", FancyToast.LENGTH_LONG, FancyToast.WARNING, false).show();
             return true;
-        }
-
-        if (province.getId() == null) {
-
         }
 
         return false;
