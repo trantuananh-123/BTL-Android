@@ -15,6 +15,7 @@ import java.util.List;
 
 import tran.tuananh.btl.Model.District;
 import tran.tuananh.btl.Model.Ethnicity;
+import tran.tuananh.btl.Model.HealthFacility;
 import tran.tuananh.btl.Model.Job;
 import tran.tuananh.btl.Model.Nationality;
 import tran.tuananh.btl.Model.Province;
@@ -67,6 +68,8 @@ public class CommonListViewAdapter<T> extends ArrayAdapter<T> implements View.On
             name = ((User) item).getName();
         } else if (item instanceof Service) {
             name = ((Service) item).getName();
+        } else if (item instanceof HealthFacility) {
+            name = ((HealthFacility) item).getName();
         }
         convertView = LayoutInflater.from(getContext()).inflate(R.layout.address_list_item, parent, false);
         AddressViewHolder addressViewHolder = new AddressViewHolder();

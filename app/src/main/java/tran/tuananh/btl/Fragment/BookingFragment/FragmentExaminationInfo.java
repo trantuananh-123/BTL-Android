@@ -483,7 +483,7 @@ public class FragmentExaminationInfo extends Fragment implements View.OnClickLis
             datePickerDialog.getDatePicker().setMinDate(calendar.getTimeInMillis());
             datePickerDialog.show();
         } else if (view == inputExaminationHour) {
-            CommonGridViewAdapter commonGridViewAdapter = new CommonGridViewAdapter(getContext(), examinationHourList, existedBookingList);
+            CommonGridViewAdapter commonGridViewAdapter = new CommonGridViewAdapter(getContext(), inputExaminationDate.getText().toString(), examinationHourList, existedBookingList);
             TextView textView = dialog2.findViewById(R.id.title);
             GridView gridView = dialog2.findViewById(R.id.gridView);
             if (gridView != null) {

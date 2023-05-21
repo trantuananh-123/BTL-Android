@@ -58,9 +58,11 @@ import tran.tuananh.btl.Activity.HomeActivity;
 import tran.tuananh.btl.Activity.LoginActivity;
 import tran.tuananh.btl.Adapter.CommonListViewAdapter;
 import tran.tuananh.btl.Database.DistrictDB;
+import tran.tuananh.btl.Database.HealthFacilityDB;
 import tran.tuananh.btl.Database.ProvinceDB;
 import tran.tuananh.btl.Database.WardDB;
 import tran.tuananh.btl.Model.District;
+import tran.tuananh.btl.Model.HealthFacility;
 import tran.tuananh.btl.Model.Province;
 import tran.tuananh.btl.Model.Ward;
 import tran.tuananh.btl.R;
@@ -75,7 +77,7 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
     private TextInputLayout inputFullNameLayout, inputEmailLayout, inputBirthdayLayout, inputIdCardLayout, inputPhoneLayout;
     private EditText inputFullName, inputEmail, inputBirthday, inputIdCard, inputPhone;
     private RadioButton inputGenderMale, inputGenderFemale, inputGenderOther;
-    private TextView spinnerProvince, spinnerDistrict, spinnerWard;
+    private TextView spinnerProvince, spinnerDistrict, spinnerWard, spinnerHealthFacility;
     private BottomSheetDialog dialog;
     private ProgressBar progressBar;
     private View progressBarBackground;
@@ -83,15 +85,19 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
     private CommonListViewAdapter<Province> adapterProvince;
     private CommonListViewAdapter<District> adapterDistrict;
     private CommonListViewAdapter<Ward> adapterWard;
+    private CommonListViewAdapter<HealthFacility> adapterHealthFacility;
     private List<Province> provinceList = new ArrayList<>();
     private List<District> districtList = new ArrayList<>();
     private List<Ward> wardList = new ArrayList<>();
+    private List<HealthFacility> healthFacilityList = new ArrayList<>();
     private ProvinceDB provinceDB;
     private DistrictDB districtDB;
     private WardDB wardDB;
+    private HealthFacilityDB healthFacilityDB;
     private Province province = new Province();
     private District district = new District();
     private Ward ward = new Ward();
+    private HealthFacility healthFacility = new HealthFacility();
     private FirebaseAuth firebaseAuth;
     private FirebaseFirestore firebaseFirestore;
     private FirebaseUser firebaseUser;
@@ -112,6 +118,7 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
         provinceDB = new ProvinceDB(getContext(), firebaseFirestore);
         districtDB = new DistrictDB(getContext(), firebaseFirestore);
         wardDB = new WardDB(getContext(), firebaseFirestore);
+        healthFacilityDB = new HealthFacilityDB(getContext(), firebaseFirestore);
 
         initView(view);
         initData(view);
@@ -149,6 +156,7 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
         inputGenderOther = view.findViewById(R.id.inputGenderOther);
         spinnerProvince = view.findViewById(R.id.spinnerProvince);
         spinnerDistrict = view.findViewById(R.id.spinnerDistrict);
+        spinnerHealthFacility = view.findViewById(R.id.spinnerHealthFacility);
         btnSave = view.findViewById(R.id.btnSave);
         progressBar = view.findViewById(R.id.progressBar);
         progressBarBackground = view.findViewById(R.id.progressBarBackground);
@@ -167,6 +175,20 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
     private void initData(View view) {
         if (firebaseUser == null) {
             firebaseUser = firebaseAuth.getCurrentUser();
+            if (firebaseUser != null) {
+                firebaseFirestore.collection("user").document(firebaseUser.getUid()).get()
+                        .addOnCompleteListener(task1 -> {
+                            if (task1.isSuccessful()) {
+                                DocumentSnapshot documentSnapshot = task1.getResult();
+                                Long roleType = (Long) documentSnapshot.get("roleType");
+                                if (roleType == 2) {
+                                    spinnerHealthFacility.setVisibility(View.VISIBLE);
+                                } else {
+                                    spinnerHealthFacility.setVisibility(View.GONE);
+                                }
+                            }
+                        });
+            }
         }
 
         // Fill user information
@@ -174,11 +196,12 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         DocumentSnapshot documentSnapshot = task.getResult();
+                        avatarUrl = (String) documentSnapshot.get("avatar");
                         inputFullName.setText((CharSequence) documentSnapshot.get("name"));
                         inputEmail.setText((CharSequence) documentSnapshot.get("email"));
                         inputPhone.setText((CharSequence) documentSnapshot.get("phone"));
                         inputBirthday.setText(documentSnapshot.get("birthday") != null ? (CharSequence) documentSnapshot.get("birthday") : "");
-                        inputIdCard.setText(documentSnapshot.get("idCard") != null ? (CharSequence) documentSnapshot.get("idCard") : "");
+                        inputIdCard.setText(documentSnapshot.get("identificationCard") != null ? (CharSequence) documentSnapshot.get("idCard") : "");
                         if (documentSnapshot.get("gender") != null) {
                             String gender = documentSnapshot.get("gender").toString();
                             if (gender.equalsIgnoreCase("male")) {
@@ -226,6 +249,7 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
                     }
                 });
         initProvince();
+        initHealthFacility();
     }
 
     private void initProvince() {
@@ -276,11 +300,28 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
         });
     }
 
+    private void initHealthFacility() {
+        // Get All HealthFacility
+        healthFacilityList = new ArrayList<>();
+        Task<QuerySnapshot> healthFacilityTask = healthFacilityDB.getAll();
+        healthFacilityTask.addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                List<DocumentSnapshot> healthFacilitySnapshotList = task.getResult().getDocuments();
+                for (DocumentSnapshot healthFacilitySnapshot : healthFacilitySnapshotList) {
+                    HealthFacility healthFacility = healthFacilitySnapshot.toObject(HealthFacility.class);
+                    healthFacilityList.add(healthFacility);
+                }
+            }
+            adapterHealthFacility = new CommonListViewAdapter<>(healthFacilityList, getContext());
+        });
+    }
+
     private void initListener() {
         this.inputAvatar.setOnClickListener(this);
         this.spinnerProvince.setOnClickListener(this);
         this.spinnerDistrict.setOnClickListener(this);
         this.spinnerWard.setOnClickListener(this);
+        this.spinnerHealthFacility.setOnClickListener(this);
         this.btnSave.setOnClickListener(this);
         this.inputBirthday.setOnClickListener(this);
         this.inputBirthdayLayout.setEndIconOnClickListener(view -> {
@@ -295,15 +336,15 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
                 public void onDateSet(DatePicker datePicker, int y, int m, int d) {
                     if (m >= 9) {
                         if (d < 10) {
-                            date = "0" + d + "/" + (m - 1) + "/" + y;
+                            date = "0" + d + "/" + (m + 1) + "/" + y;
                         } else {
-                            date = d + "/" + (m - 1) + "/" + y;
+                            date = d + "/" + (m + 1) + "/" + y;
                         }
                     } else {
                         if (d < 10) {
-                            date = "0" + d + "/0" + (m - 1) + "/" + y;
+                            date = "0" + d + "/0" + (m + 1) + "/" + y;
                         } else {
-                            date = d + "/0" + (m - 1) + "/" + y;
+                            date = d + "/0" + (m + 1) + "/" + y;
                         }
                     }
                     inputBirthday.setText(date);
@@ -387,6 +428,23 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
                 textView.setText("Choose Ward");
             }
             dialog.show();
+        } else if (view == spinnerHealthFacility) {
+            TextView textView = dialog.findViewById(R.id.title);
+            ListView listView = dialog.findViewById(R.id.listView);
+            if (listView != null) {
+                listView.setAdapter(adapterHealthFacility);
+                listView.setOnItemClickListener((adapterView, view1, i, l) -> {
+                    if (!Objects.equals(adapterHealthFacility.getItem(i).getId(), healthFacility.getId())) {
+                        healthFacility = adapterHealthFacility.getItem(i);
+                        spinnerHealthFacility.setText(adapterHealthFacility.getItem(i).getName());
+                        dialog.dismiss();
+                    }
+                });
+            }
+            if (textView != null) {
+                textView.setText("Choose HealthFacility");
+            }
+            dialog.show();
         } else if (view == inputBirthday) {
             Calendar calendar = Calendar.getInstance();
             int y = calendar.get(Calendar.YEAR);
@@ -399,15 +457,15 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
                 public void onDateSet(DatePicker datePicker, int y, int m, int d) {
                     if (m >= 9) {
                         if (d < 10) {
-                            date = "0" + d + "/" + (m - 1) + "/" + y;
+                            date = "0" + d + "/" + (m + 1) + "/" + y;
                         } else {
-                            date = d + "/" + (m - 1) + "/" + y;
+                            date = d + "/" + (m + 1) + "/" + y;
                         }
                     } else {
                         if (d < 10) {
-                            date = "0" + d + "/0" + (m - 1) + "/" + y;
+                            date = "0" + d + "/0" + (m + 1) + "/" + y;
                         } else {
-                            date = d + "/0" + (m - 1) + "/" + y;
+                            date = d + "/0" + (m + 1) + "/" + y;
                         }
                     }
                     inputBirthday.setText(date);
@@ -429,51 +487,73 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
                 hashMap.put("id", firebaseUser.getUid());
                 hashMap.put("name", fullName);
                 hashMap.put("phone", inputPhone.getText().toString());
+                hashMap.put("avatar", avatarUrl);
                 hashMap.put("birthday", birthday);
                 hashMap.put("email", email);
                 hashMap.put("gender", inputGenderMale.isChecked() ? "male" : inputGenderFemale.isChecked() ? "female" : "unknown");
-                hashMap.put("idCard", inputIdCard.getText().toString());
+                hashMap.put("identificationCard", inputIdCard.getText().toString());
+                hashMap.put("healthFacilityId", healthFacility.getId());
                 hashMap.put("province", province);
                 hashMap.put("district", district);
                 hashMap.put("ward", ward);
 
-                StorageReference storageReference = firebaseStorage.getReference().child(System.currentTimeMillis() + "." + getFileExtension(avatarUri));
-                storageReference.putFile(avatarUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                            @Override
-                            public void onSuccess(Uri uri) {
-                                avatarUrl = uri.toString();
-                                hashMap.put("avatar", avatarUrl);
-                                firebaseFirestore.collection("user").document(firebaseUser.getUid()).update(hashMap)
-                                        .addOnCompleteListener(task -> {
-                                            progressBar.setVisibility(View.GONE);
-                                            progressBarBackground.setVisibility(View.GONE);
-                                            Intent intent = new Intent(getContext(), HomeActivity.class);
-                                            intent.putExtra("menuPosition", 3);
-                                            FancyToast.makeText(getContext(), "Update info successfully !", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
-                                            startActivity(intent);
-                                        })
-                                        .addOnFailureListener(e -> {
-                                            progressBar.setVisibility(View.GONE);
-                                            progressBarBackground.setVisibility(View.GONE);
-                                            FancyToast.makeText(getContext(), "Update info failed.", FancyToast.LENGTH_LONG, FancyToast.ERROR, false).show();
-                                        });
-                            }
-                        });
-                    }
-                }).addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onProgress(@NonNull UploadTask.TaskSnapshot snapshot) {
+                if (avatarUri != null || avatarUrl == null || avatarUrl.equals("")) {
+                    StorageReference storageReference = firebaseStorage.getReference().child(fullName + "." + getFileExtension(avatarUri));
+                    storageReference.putFile(avatarUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                            storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                @Override
+                                public void onSuccess(Uri uri) {
+                                    avatarUrl = uri.toString();
+                                    hashMap.put("avatar", avatarUrl);
+                                    firebaseFirestore.collection("user").document(firebaseUser.getUid()).update(hashMap)
+                                            .addOnCompleteListener(task -> {
+                                                progressBar.setVisibility(View.GONE);
+                                                progressBarBackground.setVisibility(View.GONE);
+                                                Intent intent = new Intent(getContext(), HomeActivity.class);
+                                                intent.putExtra("menuPosition", 3);
+                                                FancyToast.makeText(getContext(), "Update info successfully !", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
+                                                startActivity(intent);
+                                            })
+                                            .addOnFailureListener(e -> {
+                                                progressBar.setVisibility(View.GONE);
+                                                progressBarBackground.setVisibility(View.GONE);
+                                                FancyToast.makeText(getContext(), "Update info failed.", FancyToast.LENGTH_LONG, FancyToast.ERROR, false).show();
+                                            });
+                                }
+                            });
+                        }
 
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
+                    }).addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onProgress(@NonNull UploadTask.TaskSnapshot snapshot) {
 
-                    }
-                });
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+
+                        }
+                    });
+                } else {
+                    firebaseFirestore.collection("user").document(firebaseUser.getUid()).update(hashMap)
+                            .addOnCompleteListener(task -> {
+                                progressBar.setVisibility(View.GONE);
+                                progressBarBackground.setVisibility(View.GONE);
+                                Intent intent = new Intent(getContext(), HomeActivity.class);
+                                intent.putExtra("menuPosition", 3);
+                                FancyToast.makeText(getContext(), "Update info successfully !", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
+                                startActivity(intent);
+                            })
+                            .addOnFailureListener(e -> {
+                                progressBar.setVisibility(View.GONE);
+                                progressBarBackground.setVisibility(View.GONE);
+                                FancyToast.makeText(getContext(), "Update info failed.", FancyToast.LENGTH_LONG, FancyToast.ERROR, false).show();
+                            });
+                    progressBar.setVisibility(View.GONE);
+                    progressBarBackground.setVisibility(View.GONE);
+                }
             }
         }
     }

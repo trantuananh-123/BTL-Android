@@ -145,7 +145,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                                                 DocumentSnapshot documentSnapshot = task1.getResult();
                                                 User user = documentSnapshot.toObject(User.class);
                                                 if (user != null) {
-                                                    if (user.getRoleType() == 1) {
+                                                    if (user.getRoleType() == 2) {
+                                                        startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+                                                        finish();
+                                                    } else if (user.getRoleType() == 1) {
                                                         startActivity(new Intent(LoginActivity.this, HomeActivity.class));
                                                         finish();
                                                     } else if (user.getRoleType() == 0) {

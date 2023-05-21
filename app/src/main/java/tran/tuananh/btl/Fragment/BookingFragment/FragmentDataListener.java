@@ -7,4 +7,6 @@ public interface FragmentDataListener {
     void onDataPass(Booking booking);
 
     void confirmBooking(Booking booking);
+
+    void complete(Booking booking);
 }

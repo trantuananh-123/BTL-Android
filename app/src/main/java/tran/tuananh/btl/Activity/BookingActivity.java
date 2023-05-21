@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentManager;
 
 import com.shuhart.stepview.StepView;
 
@@ -88,6 +89,16 @@ public class BookingActivity extends AppCompatActivity implements View.OnClickLi
                 .replace(R.id.frameLayout, fragmentExaminationComplete)
                 .addToBackStack("FragmentExaminationComplete")
                 .commit();
+    }
+
+    @Override
+    public void complete(Booking booking) {
+        stepView.go(stepView.getCurrentStep() + 1, true);
+        FragmentManager fm = getSupportFragmentManager();
+        for (int i = 0; i < fm.getBackStackEntryCount(); i++) {
+            fm.popBackStack();
+        }
+        finish();
     }
 
     @Override

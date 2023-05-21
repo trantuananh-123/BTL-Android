@@ -60,4 +60,8 @@ public class BookingDB {
     public Task<QuerySnapshot> getAll() {
         return firebaseFirestore.collection("booking").get();
     }
+
+    public Task<QuerySnapshot> getByUserId(String id) {
+        return firebaseFirestore.collection("booking").whereEqualTo("patientId", id).get();
+    }
 }

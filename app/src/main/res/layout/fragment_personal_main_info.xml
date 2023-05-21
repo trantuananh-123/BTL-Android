@@ -216,12 +216,27 @@
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="25dp"
                     android:layout_marginRight="25dp"
-                    android:layout_marginBottom="5dp"
+                    android:layout_marginBottom="25dp"
                     android:background="@drawable/search_spinner_enabled"
                     android:gravity="center_vertical"
                     android:hint="Select Ward"
                     android:padding="12dp"
                     android:textColor="@color/black"
+                    app:drawableEndCompat="@drawable/ic_arrow_down" />
+
+                <TextView
+                    android:id="@+id/spinnerHealthFacility"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="25dp"
+                    android:layout_marginRight="25dp"
+                    android:layout_marginBottom="5dp"
+                    android:background="@drawable/search_spinner_enabled"
+                    android:gravity="center_vertical"
+                    android:hint="Select HealthFacility"
+                    android:padding="12dp"
+                    android:textColor="@color/black"
+                    android:visibility="gone"
                     app:drawableEndCompat="@drawable/ic_arrow_down" />
 
                 <com.google.android.material.button.MaterialButton

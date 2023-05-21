@@ -192,6 +192,7 @@ public class FragmentExaminationSummary extends Fragment implements View.OnClick
                             HashMap<String, Object> hashMap = new LinkedHashMap<>();
                             hashMap.put("id", FnCommon.generateUId());
                             hashMap.put("doctorId", booking.getDoctorId());
+                            hashMap.put("patientId", firebaseUser.getUid());
                             hashMap.put("examinationDate", booking.getExaminationDate());
                             hashMap.put("examinationHour", booking.getExaminationHour());
                             hashMap.put("healthFacilityId", booking.getHealthFacilityId());

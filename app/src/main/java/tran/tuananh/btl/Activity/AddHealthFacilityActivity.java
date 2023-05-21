@@ -1,6 +1,7 @@
 package tran.tuananh.btl.Activity;
 
 import android.app.AlertDialog;
+import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
@@ -9,6 +10,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
+import android.webkit.MimeTypeMap;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -16,16 +18,23 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.shashank.sony.fancytoastlib.FancyToast;
 
 import java.util.ArrayList;
@@ -62,11 +71,13 @@ public class AddHealthFacilityActivity extends AppCompatActivity implements View
     private ImageButton btnBackArrow;
     private ImageView logo;
     private Uri logoUri;
+    private String logoUrl;
     private EditText name, code, address, email, phone, fanpage, website;
     private TextView spinnerProvince, spinnerDistrict, spinnerWard, spinnerSpecialist, spinnerService;
     private MaterialButton btnSave;
     private BottomSheetDialog dialog;
     private FirebaseFirestore firebaseFirestore;
+    private FirebaseStorage firebaseStorage;
     private ProvinceDB provinceDB;
     private DistrictDB districtDB;
     private WardDB wardDB;
@@ -100,6 +111,7 @@ public class AddHealthFacilityActivity extends AppCompatActivity implements View
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_health_facility);
         firebaseFirestore = FirebaseFirestore.getInstance();
+        firebaseStorage = FirebaseStorage.getInstance();
         provinceDB = new ProvinceDB(this, firebaseFirestore);
         districtDB = new DistrictDB(this, firebaseFirestore);
         wardDB = new WardDB(this, firebaseFirestore);
@@ -461,8 +473,9 @@ public class AddHealthFacilityActivity extends AppCompatActivity implements View
                 progressBar.setVisibility(View.VISIBLE);
                 progressBarBackground.setVisibility(View.VISIBLE);
 
+                String id = FnCommon.generateUId();
                 HashMap<String, Object> hashMap = new LinkedHashMap<>();
-                hashMap.put("id", FnCommon.generateUId());
+                hashMap.put("id", id);
                 hashMap.put("name", name);
                 hashMap.put("code", code);
                 hashMap.put("email", email);
@@ -475,12 +488,49 @@ public class AddHealthFacilityActivity extends AppCompatActivity implements View
                 hashMap.put("website", website.getText().toString());
                 hashMap.put("specialistIds", specialistIdList);
                 hashMap.put("serviceIds", serviceIdList);
-                firebaseFirestore.collection("healthFacility").document().set(hashMap)
+                firebaseFirestore.collection("healthFacility").document(id).set(hashMap)
                         .addOnCompleteListener(task1 -> {
                             progressBar.setVisibility(View.GONE);
                             progressBarBackground.setVisibility(View.GONE);
                             FancyToast.makeText(AddHealthFacilityActivity.this, "Add healthFacility successfully!", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
-                            finish();
+
+                            if (logoUri != null) {
+                                StorageReference storageReference = firebaseStorage.getReference().child(this.code.getText() + "." + getFileExtension(logoUri));
+                                storageReference.putFile(logoUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                                    @Override
+                                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                        storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                            @Override
+                                            public void onSuccess(Uri uri) {
+                                                logoUrl = uri.toString();
+                                                hashMap.put("image", logoUrl);
+                                                firebaseFirestore.collection("healthFacility").document(id).update(hashMap)
+                                                        .addOnCompleteListener(task -> {
+                                                            progressBar.setVisibility(View.GONE);
+                                                            progressBarBackground.setVisibility(View.GONE);
+                                                            finish();
+                                                        })
+                                                        .addOnFailureListener(e -> {
+                                                            progressBar.setVisibility(View.GONE);
+                                                            progressBarBackground.setVisibility(View.GONE);
+                                                        });
+                                            }
+                                        });
+                                    }
+                                }).addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                                    @Override
+                                    public void onProgress(@NonNull UploadTask.TaskSnapshot snapshot) {
+
+                                    }
+                                }).addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+
+                                    }
+                                });
+                            } else {
+                                finish();
+                            }
                         })
                         .addOnFailureListener(task1 -> {
                             progressBar.setVisibility(View.GONE);
@@ -529,5 +579,11 @@ public class AddHealthFacilityActivity extends AppCompatActivity implements View
     private boolean validateEmail(String email) {
         Matcher matcher = VALID_EMAIL_ADDRESS_REGEX.matcher(email);
         return matcher.matches();
+    }
+
+    private String getFileExtension(Uri uri) {
+        ContentResolver contentResolver = getContentResolver();
+        MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
+        return mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri));
     }
 }

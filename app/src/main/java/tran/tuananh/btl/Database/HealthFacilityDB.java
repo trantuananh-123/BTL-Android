@@ -26,4 +26,8 @@ public class HealthFacilityDB {
     public Task<QuerySnapshot> getById(String id) {
         return firebaseFirestore.collection("healthFacility").whereEqualTo("id", id).get();
     }
+
+    public Task<QuerySnapshot> getAll() {
+        return firebaseFirestore.collection("healthFacility").get();
+    }
 }

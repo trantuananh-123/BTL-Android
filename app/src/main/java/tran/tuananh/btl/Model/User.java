@@ -21,13 +21,17 @@ public class User implements Serializable {
     private String village;
     private String specialistId;
     private Specialist specialist;
+    private String healthFacilityId;
     private HealthFacility healthFacility;
+    private Ethnicity ethnicity;
+    private Job job;
+    private Nationality nationality;
     private Integer experience;
 
     public User() {
     }
 
-    public User(String id, String name, String phone, String avatar, String email, String address, String birthday, String gender, String identificationCard, Integer roleType, Province province, District district, Ward ward, String village) {
+    public User(String id, String name, String phone, String email, String avatar, String address, String birthday, String gender, String identificationCard, Integer roleType, Province province, District district, Ward ward, String village, String specialistId, Specialist specialist, String healthFacilityId, HealthFacility healthFacility, Ethnicity ethnicity, Job job, Nationality nationality, Integer experience) {
         this.id = id;
         this.name = name;
         this.phone = phone;
@@ -42,6 +46,14 @@ public class User implements Serializable {
         this.district = district;
         this.ward = ward;
         this.village = village;
+        this.specialistId = specialistId;
+        this.specialist = specialist;
+        this.healthFacilityId = healthFacilityId;
+        this.healthFacility = healthFacility;
+        this.ethnicity = ethnicity;
+        this.job = job;
+        this.nationality = nationality;
+        this.experience = experience;
     }
 
     public String getId() {
@@ -186,5 +198,37 @@ public class User implements Serializable {
 
     public void setSpecialistId(String specialistId) {
         this.specialistId = specialistId;
+    }
+
+    public String getHealthFacilityId() {
+        return healthFacilityId;
+    }
+
+    public void setHealthFacilityId(String healthFacilityId) {
+        this.healthFacilityId = healthFacilityId;
+    }
+
+    public Ethnicity getEthnicity() {
+        return ethnicity;
+    }
+
+    public void setEthnicity(Ethnicity ethnicity) {
+        this.ethnicity = ethnicity;
+    }
+
+    public Job getJob() {
+        return job;
+    }
+
+    public void setJob(Job job) {
+        this.job = job;
+    }
+
+    public Nationality getNationality() {
+        return nationality;
+    }
+
+    public void setNationality(Nationality nationality) {
+        this.nationality = nationality;
     }
 }

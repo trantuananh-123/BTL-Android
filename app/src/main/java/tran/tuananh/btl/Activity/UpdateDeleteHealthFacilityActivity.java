@@ -1,6 +1,7 @@
 package tran.tuananh.btl.Activity;
 
 import android.app.AlertDialog;
+import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
@@ -9,6 +10,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
+import android.webkit.MimeTypeMap;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -16,16 +18,25 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.shashank.sony.fancytoastlib.FancyToast;
 
 import java.util.ArrayList;
@@ -61,11 +72,13 @@ public class UpdateDeleteHealthFacilityActivity extends AppCompatActivity implem
     private ImageButton btnBackArrow;
     private ImageView logo;
     private Uri logoUri;
+    private String logoUrl;
     private EditText name, code, address, email, phone, fanpage, website;
     private TextView spinnerProvince, spinnerDistrict, spinnerWard, spinnerSpecialist, spinnerService;
-    private MaterialButton btnSave;
+    private MaterialButton btnSave, btnDelete;
     private BottomSheetDialog dialog;
     private FirebaseFirestore firebaseFirestore;
+    private FirebaseStorage firebaseStorage;
     private ProvinceDB provinceDB;
     private DistrictDB districtDB;
     private WardDB wardDB;
@@ -100,6 +113,7 @@ public class UpdateDeleteHealthFacilityActivity extends AppCompatActivity implem
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_update_delete_health_facility);
         firebaseFirestore = FirebaseFirestore.getInstance();
+        firebaseStorage = FirebaseStorage.getInstance();
         provinceDB = new ProvinceDB(this, firebaseFirestore);
         districtDB = new DistrictDB(this, firebaseFirestore);
         wardDB = new WardDB(this, firebaseFirestore);
@@ -138,12 +152,16 @@ public class UpdateDeleteHealthFacilityActivity extends AppCompatActivity implem
         spinnerService.setEnabled(false);
         spinnerService.setBackground(ContextCompat.getDrawable(this, R.drawable.search_spinner_disabled));
         btnSave = findViewById(R.id.btnSave);
+        btnDelete = findViewById(R.id.btnDelete);
     }
 
     private void initData() {
         Intent intent = getIntent();
         healthFacility = (HealthFacility) intent.getSerializableExtra("healthFacility");
         if (healthFacility != null) {
+            if (healthFacility.getImage() != null && !healthFacility.getImage().equals("")) {
+                Glide.with(this).load(healthFacility.getImage()).into(logo);
+            }
             name.setText(healthFacility.getName());
             code.setText(healthFacility.getCode());
             if (healthFacility.getProvince() != null) {
@@ -189,6 +207,7 @@ public class UpdateDeleteHealthFacilityActivity extends AppCompatActivity implem
         this.spinnerSpecialist.setOnClickListener(this);
         this.spinnerService.setOnClickListener(this);
         this.btnSave.setOnClickListener(this);
+        this.btnDelete.setOnClickListener(this);
     }
 
 
@@ -261,19 +280,24 @@ public class UpdateDeleteHealthFacilityActivity extends AppCompatActivity implem
                     Specialist specialist = specialistSnapshot.toObject(Specialist.class);
                     if (specialist != null) {
                         specialistList.add(specialist);
+                        if (!specialistNameList.contains(specialist.getName())) {
+                            specialistNameList.add(specialist.getName());
+                        }
                         if (specialistIdList.contains(specialist.getId())) {
                             if (!stringBuilder.toString().equals("")) {
                                 stringBuilder.append("; ");
                             }
                             stringBuilder.append(specialist.getName());
                             spinnerSpecialist.setText(stringBuilder.toString());
-                            specialistNameList.add(specialist.getName());
                             specialistIndexList.add(specialistList.indexOf(specialist));
                         }
                     }
                 }
                 spinnerService.setEnabled(true);
                 spinnerService.setBackground(ContextCompat.getDrawable(UpdateDeleteHealthFacilityActivity.this, R.drawable.search_spinner_enabled));
+                if (healthFacility.getServiceIds() != null && healthFacility.getServiceIds().size() > 0) {
+                    serviceIdList = healthFacility.getServiceIds();
+                }
                 initService();
             }
             adapterSpecialist = new CommonListViewAdapter<>(specialistList, this);
@@ -290,14 +314,9 @@ public class UpdateDeleteHealthFacilityActivity extends AppCompatActivity implem
         // Get All Service
         serviceList = new ArrayList<>();
         isSelectedServiceList = new boolean[serviceList.size()];
-        serviceIdList.clear();
         serviceIndexList.clear();
         serviceNameList.clear();
         spinnerService.setText("");
-
-        if (healthFacility.getServiceIds() != null && healthFacility.getServiceIds().size() > 0) {
-            serviceIdList = healthFacility.getServiceIds();
-        }
 
         Task<QuerySnapshot> serviceTask = serviceDB.getBySpecialist(specialistIdList.size() == 0 ? healthFacility.getSpecialistIds() : specialistIdList);
         serviceTask.addOnCompleteListener(task -> {
@@ -310,9 +329,9 @@ public class UpdateDeleteHealthFacilityActivity extends AppCompatActivity implem
                         serviceList.add(service);
                         if (!serviceNameList.contains(service.getName())) {
                             serviceNameList.add(service.getName());
-                            serviceIndexList.add(serviceList.indexOf(service));
                         }
                         if (serviceIdList.contains(service.getId())) {
+                            serviceIndexList.add(serviceList.indexOf(service));
                             if (!stringBuilder.toString().equals("")) {
                                 stringBuilder.append("; ");
                             }
@@ -443,11 +462,12 @@ public class UpdateDeleteHealthFacilityActivity extends AppCompatActivity implem
                     if (isSelectedServiceList != null) {
                         for (int index2 = 0; index2 < isSelectedServiceList.length; index2++) {
                             isSelectedServiceList[index2] = false;
-                            serviceIdList.clear();
-                            serviceIndexList.clear();
-                            spinnerService.setText("");
                         }
                     }
+                    serviceIdList.clear();
+                    serviceIndexList.clear();
+                    serviceNameList.clear();
+                    spinnerService.setText("");
                     initService();
                     spinnerService.setEnabled(true);
                     spinnerService.setBackground(ContextCompat.getDrawable(UpdateDeleteHealthFacilityActivity.this, R.drawable.search_spinner_enabled));
@@ -545,6 +565,7 @@ public class UpdateDeleteHealthFacilityActivity extends AppCompatActivity implem
                 hashMap.put("email", email);
                 hashMap.put("province", province);
                 hashMap.put("district", district);
+                hashMap.put("image", healthFacility.getImage());
                 hashMap.put("ward", ward);
                 hashMap.put("address", address.getText().toString());
                 hashMap.put("phone", phone.getText().toString());
@@ -557,7 +578,44 @@ public class UpdateDeleteHealthFacilityActivity extends AppCompatActivity implem
                             progressBar.setVisibility(View.GONE);
                             progressBarBackground.setVisibility(View.GONE);
                             FancyToast.makeText(UpdateDeleteHealthFacilityActivity.this, "Update healthFacility successfully!", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
-//                            startActivity(new Intent(Add.this, LoginActivity.class));
+
+                            if (healthFacility.getImage() == null || healthFacility.getImage().equals("") || logoUri != null) {
+                                StorageReference storageReference = firebaseStorage.getReference().child(this.code.getText() + "." + getFileExtension(logoUri));
+                                storageReference.putFile(logoUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                                    @Override
+                                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                        storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                            @Override
+                                            public void onSuccess(Uri uri) {
+                                                logoUrl = uri.toString();
+                                                hashMap.put("image", logoUrl);
+                                                firebaseFirestore.collection("healthFacility").document(healthFacility.getId()).update(hashMap)
+                                                        .addOnCompleteListener(task -> {
+                                                            progressBar.setVisibility(View.GONE);
+                                                            progressBarBackground.setVisibility(View.GONE);
+                                                            finish();
+                                                        })
+                                                        .addOnFailureListener(e -> {
+                                                            progressBar.setVisibility(View.GONE);
+                                                            progressBarBackground.setVisibility(View.GONE);
+                                                        });
+                                            }
+                                        });
+                                    }
+                                }).addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                                    @Override
+                                    public void onProgress(@NonNull UploadTask.TaskSnapshot snapshot) {
+
+                                    }
+                                }).addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+
+                                    }
+                                });
+                            } else {
+                                finish();
+                            }
                         })
                         .addOnFailureListener(task1 -> {
                             progressBar.setVisibility(View.GONE);
@@ -565,6 +623,30 @@ public class UpdateDeleteHealthFacilityActivity extends AppCompatActivity implem
                             FancyToast.makeText(UpdateDeleteHealthFacilityActivity.this, "Update healthFacility failed!", FancyToast.LENGTH_LONG, FancyToast.ERROR, false).show();
                         });
             }
+        } else if (view == btnDelete) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Delete HealthFacility");
+            builder.setMessage("Are you sure want to delete " + healthFacility.getName() + "?");
+            builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    firebaseFirestore.collection("healthFacility").document(healthFacility.getId()).delete()
+                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    FancyToast.makeText(UpdateDeleteHealthFacilityActivity.this, "Delete healthFacility failed!", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
+                                    finish();
+                                }
+                            });
+                }
+            });
+            builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    dialogInterface.dismiss();
+                }
+            });
+            builder.show();
         }
     }
 
@@ -602,5 +684,11 @@ public class UpdateDeleteHealthFacilityActivity extends AppCompatActivity implem
     private boolean validateEmail(String email) {
         Matcher matcher = VALID_EMAIL_ADDRESS_REGEX.matcher(email);
         return matcher.matches();
+    }
+
+    private String getFileExtension(Uri uri) {
+        ContentResolver contentResolver = getContentResolver();
+        MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
+        return mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri));
     }
 }
