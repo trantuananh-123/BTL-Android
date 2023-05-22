@@ -190,7 +190,9 @@ public class FragmentExaminationSummary extends Fragment implements View.OnClick
                             progressBar.setVisibility(View.VISIBLE);
                             progressBarBackground.setVisibility(View.VISIBLE);
                             HashMap<String, Object> hashMap = new LinkedHashMap<>();
-                            hashMap.put("id", FnCommon.generateUId());
+                            String id = FnCommon.generateUId();
+                            booking.setId(id);
+                            hashMap.put("id", booking.getId());
                             hashMap.put("doctorId", booking.getDoctorId());
                             hashMap.put("patientId", firebaseUser.getUid());
                             hashMap.put("examinationDate", booking.getExaminationDate());
@@ -199,14 +201,18 @@ public class FragmentExaminationSummary extends Fragment implements View.OnClick
                             hashMap.put("serviceIdList", booking.getServiceIdList());
                             hashMap.put("specialistId", booking.getSpecialistId());
                             hashMap.put("symptom", booking.getSymptom());
-                            firebaseFirestore.collection("booking").document().set(hashMap).addOnCompleteListener(task1 -> {
-                                if (task1.isSuccessful()) {
-                                    progressBar.setVisibility(View.GONE);
-                                    progressBarBackground.setVisibility(View.GONE);
-                                    FancyToast.makeText(getContext(), "Booking successfully.", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
-                                    fragmentDataListener.confirmBooking(booking);
-                                }
-                            });
+//                            firebaseFirestore.collection("booking").document().set(hashMap).addOnCompleteListener(task1 -> {
+//                                if (task1.isSuccessful()) {
+//                                    progressBar.setVisibility(View.GONE);
+//                                    progressBarBackground.setVisibility(View.GONE);
+//                                    FancyToast.makeText(getContext(), "Booking successfully.", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
+//                                    fragmentDataListener.confirmBooking(booking);
+//                                }
+//                            });
+                            progressBar.setVisibility(View.GONE);
+                            progressBarBackground.setVisibility(View.GONE);
+                            FancyToast.makeText(getContext(), "Booking successfully.", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
+                            fragmentDataListener.confirmBooking(booking);
                         }
                     }
                 }

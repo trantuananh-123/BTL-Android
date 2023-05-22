@@ -22,14 +22,35 @@
         app:strokeColor="@color/green"
         app:strokeWidth="1dp" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnReturn"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/comment_gradient"
-        android:text="Return to homepage"
-        app:backgroundTint="@null"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:weightSum="3"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/doneImage" />
+        app:layout_constraintTop_toBottomOf="@+id/doneImage">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnReturn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_weight="1"
+            android:background="@drawable/comment_gradient"
+            android:text="Return to homepage"
+            app:backgroundTint="@null" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPrintPDF"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_weight="1"
+            android:background="@drawable/comment_gradient"
+            android:text="Print PDF"
+            app:backgroundTint="@null" />
+
+    </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

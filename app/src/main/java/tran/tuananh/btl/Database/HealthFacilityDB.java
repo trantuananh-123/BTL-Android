@@ -3,6 +3,7 @@ package tran.tuananh.btl.Database;
 import android.content.Context;
 
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
@@ -25,6 +26,10 @@ public class HealthFacilityDB {
 
     public Task<QuerySnapshot> getById(String id) {
         return firebaseFirestore.collection("healthFacility").whereEqualTo("id", id).get();
+    }
+
+    public Task<DocumentSnapshot> getById2(String id) {
+        return firebaseFirestore.collection("healthFacility").document(id).get();
     }
 
     public Task<QuerySnapshot> getAll() {

@@ -3,6 +3,7 @@ package tran.tuananh.btl.Database;
 import android.content.Context;
 
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -21,6 +22,10 @@ public class ServiceDB {
 
     public Task<QuerySnapshot> getById(String id) {
         return firebaseFirestore.collection("service").whereEqualTo("id", id).get();
+    }
+
+    public Task<DocumentSnapshot> getById2(String id) {
+        return firebaseFirestore.collection("service").document(id).get();
     }
 
     public Task<QuerySnapshot> getBySpecialist(List<String> specialistIdList) {
