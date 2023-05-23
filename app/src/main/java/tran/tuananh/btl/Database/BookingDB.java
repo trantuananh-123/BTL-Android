@@ -5,6 +5,7 @@ import android.content.Context;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.AggregateQuery;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
 public class BookingDB {
@@ -62,6 +63,6 @@ public class BookingDB {
     }
 
     public Task<QuerySnapshot> getByUserId(String id) {
-        return firebaseFirestore.collection("booking").whereEqualTo("patientId", id).get();
+        return firebaseFirestore.collection("booking").whereEqualTo("patientId", id).orderBy("examinationDate", Query.Direction.DESCENDING).get();
     }
 }

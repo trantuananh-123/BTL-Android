@@ -174,7 +174,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                                     hashMap.put("name", user.getName());
                                     hashMap.put("phone", user.getPhone());
                                     hashMap.put("email", user.getEmail());
-                                    hashMap.put("password", finalPassword);
+//                                    hashMap.put("password", finalPassword);
                                     hashMap.put("roleType", user.getRoleType());
 
                                     firebaseFirestore.collection("user").document(firebaseUser.getUid()).set(hashMap)

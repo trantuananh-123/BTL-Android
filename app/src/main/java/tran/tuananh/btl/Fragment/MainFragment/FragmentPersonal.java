@@ -167,6 +167,11 @@ public class FragmentPersonal extends Fragment implements ViewHolderListener, Vi
             Intent intent = new Intent(getContext(), PersonalInfoActivity.class);
             intent.putExtra("firebaseUser", firebaseUser);
             startActivity(intent);
+        } else if (menu.getName().equalsIgnoreCase("Sign Out")) {
+            if (firebaseAuth != null) {
+                firebaseAuth.signOut();
+                startActivity(new Intent(this.getContext(), LoginActivity.class));
+            }
         }
     }
 

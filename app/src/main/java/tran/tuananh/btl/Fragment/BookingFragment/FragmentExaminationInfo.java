@@ -174,6 +174,7 @@ public class FragmentExaminationInfo extends Fragment implements View.OnClickLis
     }
 
     private void initSpecialist() {
+        inputExaminationHour.setText("");
         if (specialist.getId() != null) {
             spinnerSpecialist.setText(specialist.getName());
         }
@@ -198,7 +199,7 @@ public class FragmentExaminationInfo extends Fragment implements View.OnClickLis
     }
 
     private void initDoctor() {
-        if (doctor.getId() != null) {
+        if (doctor.getId() != null || specialist.getId() != null) {
             spinnerDoctor.setEnabled(true);
             spinnerDoctor.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.search_spinner_enabled));
             spinnerDoctor.setText(doctor.getName());
@@ -483,7 +484,7 @@ public class FragmentExaminationInfo extends Fragment implements View.OnClickLis
             datePickerDialog.getDatePicker().setMinDate(calendar.getTimeInMillis());
             datePickerDialog.show();
         } else if (view == inputExaminationHour) {
-            CommonGridViewAdapter commonGridViewAdapter = new CommonGridViewAdapter(getContext(), inputExaminationDate.getText().toString(), examinationHourList, existedBookingList);
+            CommonGridViewAdapter commonGridViewAdapter = new CommonGridViewAdapter(getContext(), inputExaminationDate.getText().toString(), examinationHourList, existedBookingList, healthFacility.getId(), doctor.getId(), specialist.getId(), doctorList);
             TextView textView = dialog2.findViewById(R.id.title);
             GridView gridView = dialog2.findViewById(R.id.gridView);
             if (gridView != null) {

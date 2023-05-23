@@ -184,9 +184,9 @@ public class FragmentExaminationSummary extends Fragment implements View.OnClick
                 public void onComplete(@NonNull Task<AggregateQuerySnapshot> task) {
                     if (task.isSuccessful()) {
                         AggregateQuerySnapshot snapshot = task.getResult();
-                        if (snapshot.getCount() > 0) {
-                            FancyToast.makeText(getContext(), "Examination time is unavailable", FancyToast.LENGTH_LONG, FancyToast.ERROR, false).show();
-                        } else {
+//                        if (snapshot.getCount() > 0) {
+//                            FancyToast.makeText(getContext(), "Examination time is unavailable", FancyToast.LENGTH_LONG, FancyToast.ERROR, false).show();
+//                        } else {
                             progressBar.setVisibility(View.VISIBLE);
                             progressBarBackground.setVisibility(View.VISIBLE);
                             HashMap<String, Object> hashMap = new LinkedHashMap<>();
@@ -201,19 +201,19 @@ public class FragmentExaminationSummary extends Fragment implements View.OnClick
                             hashMap.put("serviceIdList", booking.getServiceIdList());
                             hashMap.put("specialistId", booking.getSpecialistId());
                             hashMap.put("symptom", booking.getSymptom());
-//                            firebaseFirestore.collection("booking").document().set(hashMap).addOnCompleteListener(task1 -> {
-//                                if (task1.isSuccessful()) {
-//                                    progressBar.setVisibility(View.GONE);
-//                                    progressBarBackground.setVisibility(View.GONE);
-//                                    FancyToast.makeText(getContext(), "Booking successfully.", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
-//                                    fragmentDataListener.confirmBooking(booking);
-//                                }
-//                            });
+                            firebaseFirestore.collection("booking").document().set(hashMap).addOnCompleteListener(task1 -> {
+                                if (task1.isSuccessful()) {
+                                    progressBar.setVisibility(View.GONE);
+                                    progressBarBackground.setVisibility(View.GONE);
+                                    FancyToast.makeText(getContext(), "Booking successfully.", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
+                                    fragmentDataListener.confirmBooking(booking);
+                                }
+                            });
                             progressBar.setVisibility(View.GONE);
                             progressBarBackground.setVisibility(View.GONE);
                             FancyToast.makeText(getContext(), "Booking successfully.", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
                             fragmentDataListener.confirmBooking(booking);
-                        }
+//                        }
                     }
                 }
             });

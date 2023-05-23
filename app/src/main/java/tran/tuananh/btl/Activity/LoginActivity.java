@@ -29,12 +29,12 @@ import tran.tuananh.btl.Model.User;
 import tran.tuananh.btl.R;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
-
     public static final Pattern VALID_EMAIL_ADDRESS_REGEX = Pattern.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
 
     private TextInputLayout inputEmailLayout, inputPasswordLayout;
     private EditText inputEmail, inputPassword;
-    private TextView txtRegister;
+
+    private TextView txtRegister, txtForgotAccount;
     private ProgressBar progressBar;
     private MaterialButton btnLogin;
     private View progressBarBackground;
@@ -80,6 +80,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         inputEmailLayout = findViewById(R.id.inputEmailLayout);
         inputEmail = inputEmailLayout.getEditText();
         txtRegister = findViewById(R.id.txtRegister);
+        txtForgotAccount = findViewById(R.id.txtForgotAccount);
         btnLogin = findViewById(R.id.btnLogin);
         progressBar = findViewById(R.id.progressBar);
         progressBarBackground = findViewById(R.id.progressBarBackground);
@@ -88,6 +89,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private void initListener() {
         this.btnLogin.setOnClickListener(this);
         this.txtRegister.setOnClickListener(this);
+        this.txtForgotAccount.setOnClickListener(this);
 
         inputPassword.addTextChangedListener(new TextWatcher() {
             @Override
@@ -170,6 +172,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             }
         } else if (view == txtRegister) {
             startActivity(new Intent(this, RegisterActivity.class));
+        } else if (view == txtForgotAccount) {
+            startActivity(new Intent(this, ForgotPasswordActivity.class));
         }
     }
 

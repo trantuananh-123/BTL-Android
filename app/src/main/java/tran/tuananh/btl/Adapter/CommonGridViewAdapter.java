@@ -7,26 +7,48 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.AggregateQuery;
+import com.google.firebase.firestore.AggregateQuerySnapshot;
+import com.google.firebase.firestore.AggregateSource;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 
+import tran.tuananh.btl.Database.BookingDB;
 import tran.tuananh.btl.Model.Booking;
+import tran.tuananh.btl.Model.User;
 import tran.tuananh.btl.R;
 
 public class CommonGridViewAdapter extends BaseAdapter {
+    private List<User> doctorList;
+    private String healthFacilityId;
+    private String doctorId;
+    private String specialistId;
     private String examinationDate;
     private List<String> hourList;
     private List<Booking> existedBookingList;
     private LayoutInflater layoutInflater;
+    private BookingDB bookingDB;
 
-    public CommonGridViewAdapter(Context context, String examinationDate, List<String> hourList, List<Booking> existedBookingList) {
+    public CommonGridViewAdapter(Context context, String examinationDate, List<String> hourList, List<Booking> existedBookingList, String healthFacilityId, String doctorId, String specialistId, List<User> doctorList) {
+        FirebaseFirestore firebaseFirestore = FirebaseFirestore.getInstance();
         layoutInflater = LayoutInflater.from(context);
         this.examinationDate = examinationDate;
         this.hourList = hourList;
         this.existedBookingList = existedBookingList;
+        this.healthFacilityId = healthFacilityId;
+        this.doctorId = doctorId;
+        this.specialistId = specialistId;
+        this.doctorList = doctorList;
+        this.bookingDB = new BookingDB(context, firebaseFirestore);
     }
 
     @Override
@@ -86,6 +108,22 @@ public class CommonGridViewAdapter extends BaseAdapter {
             if (booking.getExaminationHour().equalsIgnoreCase(hour)) {
                 setEnable(hourTxt, false);
             }
+        }
+        if (doctorId == null) {
+            AggregateQuery aggregateQuery = bookingDB.isExist(null, healthFacilityId, specialistId, examinationDate, hour);
+            aggregateQuery.get(AggregateSource.SERVER).addOnCompleteListener(new OnCompleteListener<AggregateQuerySnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<AggregateQuerySnapshot> task) {
+                    if (task.isSuccessful()) {
+                        AggregateQuerySnapshot snapshot = task.getResult();
+                        if (snapshot.getCount() >= doctorList.size()) {
+                            setEnable(hourTxt, false);
+                        } else {
+                            setEnable(hourTxt, true);
+                        }
+                    }
+                }
+            });
         }
         return hourTxt;
     }
