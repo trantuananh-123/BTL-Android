@@ -554,6 +554,9 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
                     progressBar.setVisibility(View.GONE);
                     progressBarBackground.setVisibility(View.GONE);
                 }
+            } else {
+                progressBar.setVisibility(View.GONE);
+                progressBarBackground.setVisibility(View.GONE);
             }
         }
     }
@@ -573,7 +576,7 @@ public class FragmentMainInfo extends Fragment implements View.OnClickListener {
             inputEmailLayout.setError(null);
         }
 
-        if (!birthday.matches("\\d{2}/\\d{2}/\\d{4}")) {
+        if (!birthday.equals("") && !birthday.matches("\\d{2}/\\d{2}/\\d{4}")) {
             inputBirthdayLayout.setError("Invalid date(mm/dd/yyyy)");
         }
     }

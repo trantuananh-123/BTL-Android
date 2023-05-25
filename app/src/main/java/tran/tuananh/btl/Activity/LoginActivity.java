@@ -51,29 +51,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         initListener();
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        if (firebaseAuth != null && firebaseAuth.getCurrentUser() != null) {
-            firebaseFirestore.collection("user").document(firebaseAuth.getCurrentUser().getUid()).get()
-                    .addOnCompleteListener(task1 -> {
-                        if (task1.isSuccessful()) {
-                            DocumentSnapshot documentSnapshot = task1.getResult();
-                            User user = documentSnapshot.toObject(User.class);
-                            if (user != null) {
-                                if (user.getRoleType() == 1) {
-                                    startActivity(new Intent(LoginActivity.this, HomeActivity.class));
-                                    finish();
-                                } else if (user.getRoleType() == 0) {
-                                    startActivity(new Intent(LoginActivity.this, HomeAdminActivity.class));
-                                    finish();
-                                }
-                            }
-                        }
-                    });
-        }
-    }
-
     private void initView() {
         inputPasswordLayout = findViewById(R.id.inputPasswordLayout);
         inputPassword = inputPasswordLayout.getEditText();

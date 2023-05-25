@@ -634,7 +634,7 @@ public class UpdateDeleteHealthFacilityActivity extends AppCompatActivity implem
                             .addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
-                                    FancyToast.makeText(UpdateDeleteHealthFacilityActivity.this, "Delete healthFacility failed!", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
+                                    FancyToast.makeText(UpdateDeleteHealthFacilityActivity.this, "Delete healthFacility success!", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
                                     finish();
                                 }
                             });

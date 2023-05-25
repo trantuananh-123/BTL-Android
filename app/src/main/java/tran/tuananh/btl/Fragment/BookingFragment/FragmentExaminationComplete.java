@@ -160,7 +160,7 @@ public class FragmentExaminationComplete extends Fragment implements View.OnClic
             intent.putExtra("booking", json);
             alarmManager = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
             pendingIntent = PendingIntent.getBroadcast(getContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-            alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis() - 900000, pendingIntent);
+            alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis() - 43200000, pendingIntent);
         } catch (ParseException | JsonProcessingException e) {
             throw new RuntimeException(e);
         }

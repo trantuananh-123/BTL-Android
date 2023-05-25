@@ -17,22 +17,20 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
-import com.shashank.sony.fancytoastlib.FancyToast;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import tran.tuananh.btl.Activity.HealthFacilityManagementActivity;
 import tran.tuananh.btl.Activity.LoginActivity;
-import tran.tuananh.btl.Activity.PersonalInfoActivity;
+import tran.tuananh.btl.Activity.ServiceManagementActivity;
+import tran.tuananh.btl.Activity.SpecialistManagementActivity;
 import tran.tuananh.btl.Adapter.MenuRcvAdapter;
 import tran.tuananh.btl.Database.MenuDB;
 import tran.tuananh.btl.Model.Menu;
@@ -139,6 +137,14 @@ public class FragmentManagement extends Fragment implements ViewHolderListener, 
         menu.setImage("ic_healthfacility");
         menu.setName("HealthFacility Management");
         menuList.add(menu);
+        menu = new Menu();
+        menu.setImage("ic_specialist");
+        menu.setName("Specialist Management");
+        menuList.add(menu);
+        menu = new Menu();
+        menu.setImage("ic_services");
+        menu.setName("Service Management");
+        menuList.add(menu);
 
         menuRcvAdapter.setMenuList(menuList);
         recyclerView.setAdapter(menuRcvAdapter);
@@ -151,6 +157,14 @@ public class FragmentManagement extends Fragment implements ViewHolderListener, 
         Menu menu = menuRcvAdapter.getMenu(position);
         if (menu.getName().equalsIgnoreCase("HealthFacility Management")) {
             Intent intent = new Intent(getContext(), HealthFacilityManagementActivity.class);
+            intent.putExtra("firebaseUser", firebaseUser);
+            startActivity(intent);
+        } else if (menu.getName().equalsIgnoreCase("Specialist Management")) {
+            Intent intent = new Intent(getContext(), SpecialistManagementActivity.class);
+            intent.putExtra("firebaseUser", firebaseUser);
+            startActivity(intent);
+        } else if (menu.getName().equalsIgnoreCase("Service Management")) {
+            Intent intent = new Intent(getContext(), ServiceManagementActivity.class);
             intent.putExtra("firebaseUser", firebaseUser);
             startActivity(intent);
         }
